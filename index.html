@@ -153,6 +153,7 @@ h4{font-size:.75rem;color:#94a3b8;margin:8px 0 8px}
       </table>
     </div>
     <button class="btn2" onclick="window.print()">🖨️ طباعة / حفظ التقرير كـ PDF</button>
+    <button id="saleBtn" class="btn2" style="color:#60a5fa" onclick="logSale()">📒 تسجيل الفاتورة في الشيت</button>
     <button class="btn2" style="color:#34d399" onclick="confirmProduction()">✅ تأكيد التصنيع وخصم الكميات من المخزون</button>
   </div>
 </div>
@@ -254,7 +255,7 @@ function calculatePerfume() {
   const totalCost = oilCost + alcCost + bottlePrice;
   const selling = totalCost * (1 + profitMargin / 100);
 
-  window.lastCalc = { oilAmount, alcAmount };
+  window.lastCalc = { oilAmount, alcAmount, totalCost, selling };
   $('resultDate').textContent = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
   $('resOilAmount').textContent = oilAmount.toFixed(2) + ' مل';
   $('resOilCost').textContent = oilCost.toFixed(2);
@@ -263,7 +264,34 @@ function calculatePerfume() {
   $('resBottleCost').textContent = bottlePrice.toFixed(2);
   $('resTotalCost').textContent = totalCost.toFixed(2);
   $('resSellingPrice').textContent = selling.toFixed(2);
+  const sb = $('saleBtn'); sb.disabled = false; sb.textContent = '📒 تسجيل الفاتورة في الشيت';
   $('results').classList.remove('hide');
+}
+
+// تسجيل الفاتورة في Google Sheets
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbyI4lLTtaLX0RkrUMdE400z1Q5meiogrNMLrYyIUIYviWe8QTyq-Z1SVcMqEh527JrR/exec";
+async function logSale() {
+  if (!window.lastCalc) return;
+  const btn = $('saleBtn');
+  btn.disabled = true; btn.textContent = 'جاري التسجيل... ⏳';
+  const cost = +window.lastCalc.totalCost.toFixed(2), price = +window.lastCalc.selling.toFixed(2);
+  const sale = {
+    date: new Date().toISOString().split('T')[0],
+    invoiceId: '#INV-' + Date.now().toString().slice(-7),
+    name: 'تركيبة خاصة',
+    volume: parseFloat($('totalVol').value) || 0,
+    cost, price,
+    profit: +(price - cost).toFixed(2),
+    notes: 'تم البيع بنجاح'
+  };
+  try {
+    await fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(sale) });
+    btn.textContent = '✓ تم تسجيل الفاتورة';
+    showToast('أُرسلت الفاتورة إلى الشيت');
+  } catch (e) {
+    btn.disabled = false; btn.textContent = '📒 تسجيل الفاتورة في الشيت';
+    showToast('تعذر الاتصال بالشيت، تأكد من الإنترنت وحاول مرة أخرى', false);
+  }
 }
 
 // PWA
