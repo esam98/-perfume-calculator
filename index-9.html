@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حاسبة وتكلفة العطور الاحترافية - عصام</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="حاسبة العطور">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<style>
+body{font-family:'Cairo',sans-serif}
+.inp{width:100%;background:#0f172a;border:1px solid #475569;border-radius:.5rem;padding:.55rem .75rem;color:#fff;font-size:.875rem;outline:none}
+.inp:focus{border-color:#fbbf24}
+.lbl{display:block;font-size:.75rem;color:#cbd5e1;margin-bottom:.25rem}
+.btn{width:100%;background:#f59e0b;color:#020617;font-weight:700;padding:.75rem;border-radius:.75rem;font-size:.875rem;cursor:pointer;transition:.2s}
+.btn:hover{background:#d97706}
+.btn2{width:100%;background:#334155;color:#fbbf24;font-weight:700;padding:.65rem;border-radius:.75rem;font-size:.875rem;cursor:pointer}
+.btn2:hover{background:#475569}
+@media print{
+  body *{visibility:hidden}
+  #printableArea,#printableArea *{visibility:visible;color:#000!important;border-color:#cbd5e1!important;background:#fff!important}
+  #printableArea{position:absolute;left:0;top:0;width:100%;padding:20px}
+}
+</style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen py-10 px-4">
+
+<div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-[60] hidden px-4 py-2 rounded-xl text-sm font-semibold shadow-lg"></div>
+
+<div class="max-w-xl mx-auto bg-slate-800 rounded-2xl shadow-xl p-6 md:p-8 border border-slate-700">
+
+  <div id="authSection" class="space-y-6">
+    <div class="text-center">
+      <h1 class="text-2xl font-bold text-amber-400">حاسبة تراكيز وتكلفة العطور</h1>
+      <p class="text-slate-400 text-xs mt-1">سجل دخولك أو أنشئ حساباً لحفظ أسعارك ومخزونك في السحابة</p>
+    </div>
+    <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700">
+      <button onclick="switchTab('login')" id="loginTabBtn" class="flex-1 py-2 text-sm font-semibold rounded-lg cursor-pointer bg-amber-500 text-slate-950">تسجيل الدخول</button>
+      <button onclick="switchTab('register')" id="registerTabBtn" class="flex-1 py-2 text-sm font-semibold rounded-lg cursor-pointer text-slate-400 hover:text-white">إنشاء حساب جديد</button>
+    </div>
+
+    <div id="loginForm" class="space-y-4">
+      <div><label class="lbl">البريد الإلكتروني</label><input type="email" id="loginEmail" placeholder="example@domain.com" class="inp"></div>
+      <div><label class="lbl">كلمة المرور</label><input type="password" id="loginPassword" placeholder="••••••••" class="inp"></div>
+      <button onclick="loginUser()" class="btn">دخول إلى الحساب</button>
+      <button onclick="resetPassword()" class="text-xs text-amber-400 underline cursor-pointer w-full text-center">نسيت كلمة المرور؟</button>
+    </div>
+
+    <div id="registerForm" class="space-y-4 hidden">
+      <div><label class="lbl">الاسم</label><input type="text" id="regName" class="inp"></div>
+      <div><label class="lbl">البريد الإلكتروني</label><input type="email" id="regEmail" placeholder="example@domain.com" class="inp"></div>
+      <div><label class="lbl">كلمة المرور (6 أحرف فأكثر)</label><input type="password" id="regPassword" placeholder="••••••••" class="inp"></div>
+      <button onclick="registerUser()" class="btn">إتمام التسجيل وإنشاء الحساب</button>
+    </div>
+    <p id="authError" class="text-red-400 text-xs text-center mt-2"></p>
+  </div>
+
+  <div id="mainHeader" class="hidden justify-between items-center mb-6 pb-4 border-b border-slate-700">
+    <div>
+      <h1 class="text-xl md:text-2xl font-bold text-amber-400">حاسبة العطور الاحترافية</h1>
+      <div class="flex items-center gap-2 mt-1">
+        <span id="userNameDisplay" class="text-slate-300 text-xs font-semibold">مرحباً</span>
+        <button onclick="logoutUser()" class="text-red-400 hover:text-red-300 text-xs underline cursor-pointer ms-2">تسجيل الخروج</button>
+        <button id="installBtn" onclick="installApp()" class="hidden text-emerald-400 text-xs underline cursor-pointer ms-2">📲 تثبيت التطبيق</button>
+      </div>
+    </div>
+    <button onclick="toggleSettingsModal(true)" class="bg-slate-700 hover:bg-slate-600 p-2.5 rounded-full text-amber-400 cursor-pointer shadow-md flex items-center justify-center" title="إعدادات الأسعار والمخزون">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+    </button>
+  </div>
+
+  <div id="calculatorBody" class="hidden space-y-6">
+    <div class="space-y-4">
+      <h2 class="text-lg font-semibold text-amber-300">إعدادات التركيبة الحالية</h2>
+      <div>
+        <label class="lbl">حجم العبوة الجاهز</label>
+        <div id="sizeChips" class="flex gap-2 flex-wrap">
+          <button data-size="30" onclick="setSize(30)">30 مل</button>
+          <button data-size="50" onclick="setSize(50)">50 مل</button>
+          <button data-size="100" onclick="setSize(100)">100 مل</button>
+          <button data-size="custom" onclick="setSize('custom')">مخصص</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div><label class="lbl">الحجم الإجمالي (مل)</label><input type="number" id="totalVol" value="100" min="1" class="inp" oninput="syncChips()"></div>
+        <div><label class="lbl">نسبة التركيز (%)</label><input type="number" id="concentration" value="25" min="0" max="100" class="inp"></div>
+        <div><label class="lbl">هامش الربح (%)</label><input type="number" id="profitMargin" value="30" min="0" class="inp"></div>
+      </div>
+    </div>
+
+    <button onclick="calculatePerfume()" class="btn shadow-lg">احسب الكميات والتكلفة وسعر البيع</button>
+
+    <div id="stockAlert" class="hidden border p-3 rounded-xl text-xs"></div>
+
+    <div id="results" class="mt-8 hidden bg-slate-900 p-5 rounded-xl border border-slate-700 space-y-4">
+      <div id="printableArea" class="space-y-4 bg-slate-900 p-3 rounded-xl">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+          <h3 id="resultTitle" class="text-base font-bold text-amber-400">تقرير تركيبة العطر</h3>
+          <span id="resultDate" class="text-xs text-slate-400"></span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-right border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 text-xs">
+                <th class="py-2 px-2 font-semibold">المكون / العنصر</th>
+                <th class="py-2 px-2 font-semibold">الكمية</th>
+                <th class="py-2 px-2 font-semibold">التكلفة</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 text-sm">
+              <tr><td class="py-2.5 px-2 text-slate-300">الزيت العطري</td><td id="resOilAmount" class="py-2.5 px-2 text-white font-medium">0 مل</td><td id="resOilCost" class="py-2.5 px-2 text-amber-300 font-medium">0</td></tr>
+              <tr><td class="py-2.5 px-2 text-slate-300">الكحول</td><td id="resAlcAmount" class="py-2.5 px-2 text-white font-medium">0 مل</td><td id="resAlcCost" class="py-2.5 px-2 text-amber-300 font-medium">0</td></tr>
+              <tr><td class="py-2.5 px-2 text-slate-300">العبوة / الغطاء</td><td class="py-2.5 px-2 text-slate-500">-</td><td id="resBottleCost" class="py-2.5 px-2 text-amber-300 font-medium">0</td></tr>
+            </tbody>
+            <tfoot>
+              <tr class="border-t border-slate-700 font-bold text-sm text-slate-200"><td colspan="2" class="py-2.5 px-2">التكلفة الإجمالية:</td><td id="resTotalCost" class="py-2.5 px-2">0</td></tr>
+              <tr class="text-sm text-emerald-400 font-bold"><td colspan="2" class="py-2.5 px-2">سعر البيع المقترح (مع الربح):</td><td id="resSellingPrice" class="py-2.5 px-2">0</td></tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <button onclick="window.print()" class="btn2">طباعة / حفظ التقرير كـ PDF</button>
+      <button onclick="confirmProduction()" class="btn2 !text-emerald-400">تأكيد التصنيع وخصم الكميات من المخزون</button>
+    </div>
+  </div>
+</div>
+
+<div id="settingsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+  <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+    <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+      <h3 class="text-lg font-bold text-amber-400">الإعدادات والمخزون</h3>
+      <button onclick="toggleSettingsModal(false)" class="text-slate-400 hover:text-white font-bold text-xl cursor-pointer">&times;</button>
+    </div>
+    <div class="space-y-3 max-h-[70vh] overflow-y-auto px-1">
+      <h4 class="text-xs font-semibold text-slate-400">أسعار المواد (لكل 100 مل)</h4>
+      <div><label class="lbl">سعر الزيت العطري (لكل 100 مل)</label><input type="number" id="oilPrice100" step="0.01" min="0" class="inp" placeholder="500"></div>
+      <div><label class="lbl">سعر الكحول (لكل 100 مل)</label><input type="number" id="alcPrice100" step="0.01" min="0" class="inp" placeholder="50"></div>
+      <div><label class="lbl">سعر عبوة 30 مل (مع الغطاء)</label><input type="number" id="bottlePrice30" step="0.01" min="0" class="inp" placeholder="100"></div>
+      <div><label class="lbl">سعر عبوة 50 مل (مع الغطاء)</label><input type="number" id="bottlePrice50" step="0.01" min="0" class="inp" placeholder="130"></div>
+      <div><label class="lbl">سعر عبوة 100 مل (مع الغطاء)</label><input type="number" id="bottlePrice100" step="0.01" min="0" class="inp" placeholder="150"></div>
+      <div><label class="lbl">سعر العبوة للحجم المخصص</label><input type="number" id="bottlePrice" step="0.01" min="0" class="inp" placeholder="150"></div>
+      <h4 class="text-xs font-semibold text-slate-400 pt-2">المخزون المتاح حالياً</h4>
+      <div><label class="lbl">مخزون الزيت العطري المتاح (مل)</label><input type="number" id="oilStock" step="1" min="0" class="inp" placeholder="1000"></div>
+      <div><label class="lbl">مخزون الكحول المتاح (مل)</label><input type="number" id="alcStock" step="1" min="0" class="inp" placeholder="5000"></div>
+    </div>
+    <button id="saveSettingsBtn" onclick="saveSettings()" class="btn mt-4">حفظ الإعدادات والمخزون في السحابة</button>
+  </div>
+</div>
+
+<script>
+function showToast(msg, ok = true) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[60] px-4 py-2 rounded-xl text-sm font-semibold shadow-lg ' + (ok ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => t.classList.add('hidden'), 3500);
+}
+
+function switchTab(tab) {
+  const on = "flex-1 py-2 text-sm font-semibold rounded-lg cursor-pointer bg-amber-500 text-slate-950";
+  const off = "flex-1 py-2 text-sm font-semibold rounded-lg cursor-pointer text-slate-400 hover:text-white";
+  const isLogin = tab === 'login';
+  document.getElementById('loginForm').classList.toggle('hidden', !isLogin);
+  document.getElementById('registerForm').classList.toggle('hidden', isLogin);
+  document.getElementById('loginTabBtn').className = isLogin ? on : off;
+  document.getElementById('registerTabBtn').className = isLogin ? off : on;
+  document.getElementById('authError').innerText = "";
+}
+
+window.selectedSize = 100;
+function renderChips() {
+  document.querySelectorAll('#sizeChips button').forEach(b => {
+    const on = String(b.dataset.size) === String(window.selectedSize);
+    b.className = 'px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer border ' + (on ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-slate-900 text-slate-300 border-slate-600');
+  });
+}
+function setSize(s) {
+  window.selectedSize = s;
+  if (s === 'custom') document.getElementById('totalVol').focus();
+  else document.getElementById('totalVol').value = s;
+  renderChips();
+  if (!document.getElementById('results').classList.contains('hidden')) calculatePerfume();
+}
+function syncChips() {
+  const v = parseFloat(document.getElementById('totalVol').value);
+  window.selectedSize = [30, 50, 100].includes(v) ? v : 'custom';
+  renderChips();
+}
+renderChips();
+
+// PWA: تثبيت التطبيق وتسجيل عامل الخدمة
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBtn').classList.remove('hidden');
+});
+window.addEventListener('appinstalled', () => document.getElementById('installBtn').classList.add('hidden'));
+async function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('installBtn').classList.add('hidden');
+}
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+function toggleSettingsModal(show) {
+  const m = document.getElementById('settingsModal');
+  m.classList.toggle('hidden', !show);
+  m.classList.toggle('flex', show);
+}
+
+function calculatePerfume() {
+  const g = id => parseFloat(document.getElementById(id).value) || 0;
+  const totalVol = g('totalVol'), concentration = g('concentration'), profitMargin = g('profitMargin');
+  const oilPrice100 = g('oilPrice100'), alcPrice100 = g('alcPrice100'), bottlePrice = [30, 50, 100].includes(window.selectedSize) ? g('bottlePrice' + window.selectedSize) : g('bottlePrice');
+  const oilStock = g('oilStock'), alcStock = g('alcStock');
+
+  if (totalVol <= 0) return showToast("الحجم الإجمالي يجب أن يكون أكبر من صفر", false);
+  if (concentration < 0 || concentration > 100) return showToast("نسبة التركيز يجب أن تكون بين 0 و100", false);
+  if (profitMargin < 0) return showToast("هامش الربح لا يمكن أن يكون سالباً", false);
+
+  const oilAmount = totalVol * (concentration / 100);
+  const alcAmount = totalVol - oilAmount;
+
+  const box = document.getElementById('stockAlert');
+  const alerts = [];
+  let style = 'bg-red-950/60 border-red-700 text-red-200';
+  if (oilStock === 0 && alcStock === 0) {
+    alerts.push("لم تحدد المخزون أو الأسعار بعد. افتح الإعدادات (⚙️) وأدخلها ثم احفظ.");
+    style = 'bg-sky-950/60 border-sky-700 text-sky-200';
+  } else {
+    if (oilAmount > oilStock) alerts.push(`تنبيه: كمية الزيت المطلوبة (${oilAmount.toFixed(2)} مل) أكبر من المخزون المتاح (${oilStock} مل)!`);
+    if (alcAmount > alcStock) alerts.push(`تنبيه: كمية الكحول المطلوبة (${alcAmount.toFixed(2)} مل) أكبر من المخزون المتاح (${alcStock} مل)!`);
+  }
+  if (alerts.length) {
+    box.className = 'border p-3 rounded-xl text-xs ' + style;
+    box.innerHTML = alerts.join('<br>');
+  } else {
+    box.className = 'hidden';
+  }
+
+  const oilCost = oilAmount * (oilPrice100 / 100);
+  const alcCost = alcAmount * (alcPrice100 / 100);
+  const totalCost = oilCost + alcCost + bottlePrice;
+  const sellingPrice = totalCost * (1 + profitMargin / 100);
+
+  window.lastCalc = { oilAmount, alcAmount };
+  document.getElementById('resultDate').innerText = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+  document.getElementById('resOilAmount').innerText = oilAmount.toFixed(2) + " مل";
+  document.getElementById('resOilCost').innerText = oilCost.toFixed(2);
+  document.getElementById('resAlcAmount').innerText = alcAmount.toFixed(2) + " مل";
+  document.getElementById('resAlcCost').innerText = alcCost.toFixed(2);
+  document.getElementById('resBottleCost').innerText = bottlePrice.toFixed(2);
+  document.getElementById('resTotalCost').innerText = totalCost.toFixed(2);
+  document.getElementById('resSellingPrice').innerText = sellingPrice.toFixed(2);
+  document.getElementById('results').classList.remove('hidden');
+}
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCMo2jbgscNK7A8uEQd50oGSI4VhkrSSaA",
+  authDomain: "perfume-calculator.firebaseapp.com",
+  projectId: "perfume-calculator",
+  storageBucket: "perfume-calculator.firebasestorage.app",
+  messagingSenderId: "622295596086",
+  appId: "1:622295596086:web:bbd219f2cae7d676efec97",
+  measurementId: "G-23EGSSMTXV"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+let currentUserUid = null;
+
+const $ = id => document.getElementById(id);
+const authErrors = {
+  'auth/email-already-in-use': 'هذا البريد مسجل مسبقاً',
+  'auth/invalid-email': 'صيغة البريد الإلكتروني غير صحيحة',
+  'auth/weak-password': 'كلمة المرور ضعيفة، استخدم 6 أحرف على الأقل',
+  'auth/network-request-failed': 'تعذر الاتصال بالإنترنت'
+};
+
+onAuthStateChanged(auth, async (user) => {
+  const loggedIn = !!user;
+  currentUserUid = loggedIn ? user.uid : null;
+  $('authSection').classList.toggle('hidden', loggedIn);
+  $('mainHeader').classList.toggle('hidden', !loggedIn);
+  $('mainHeader').classList.toggle('flex', loggedIn);
+  $('calculatorBody').classList.toggle('hidden', !loggedIn);
+  if (loggedIn) {
+    if (user.displayName) $('userNameDisplay').innerText = "مرحباً، " + user.displayName;
+    await loadUserData(user.uid);
+  } else {
+    $('results').classList.add('hidden');
+    $('stockAlert').className = 'hidden';
+  }
+});
+
+window.registerUser = async function () {
+  const name = $('regName').value.trim();
+  const email = $('regEmail').value.trim();
+  const password = $('regPassword').value;
+  const errEl = $('authError');
+  errEl.innerText = "";
+  if (!name) { errEl.innerText = "الرجاء إدخال الاسم"; return; }
+  if (!email) { errEl.innerText = "الرجاء إدخال البريد الإلكتروني"; return; }
+  if (password.length < 6) { errEl.innerText = "كلمة المرور يجب أن تكون 6 أحرف على الأقل"; return; }
+
+  let cred;
+  try {
+    cred = await createUserWithEmailAndPassword(auth, email, password);
+  } catch (error) {
+    errEl.innerText = authErrors[error.code] || "خطأ في التسجيل، حاول مرة أخرى";
+    return;
+  }
+  // الحساب أُنشئ: أي فشل لاحق في حفظ الاسم لا يعتبر فشلاً في التسجيل
+  try {
+    await updateProfile(cred.user, { displayName: name });
+    await setDoc(doc(db, "userPrices", cred.user.uid), {
+      name, oilPrice100: 0, alcPrice100: 0, bottlePrice: 0, oilStock: 0, alcStock: 0
+    }, { merge: true });
+    $('userNameDisplay').innerText = "مرحباً، " + name;
+    await loadUserData(cred.user.uid);
+  } catch (error) {
+    console.error(error);
+    showToast("تم إنشاء الحساب لكن تعذر حفظ بياناتك الأولية", false);
+  }
+};
+
+window.loginUser = async function () {
+  const errEl = $('authError');
+  errEl.innerText = "";
+  try {
+    await signInWithEmailAndPassword(auth, $('loginEmail').value.trim(), $('loginPassword').value);
+  } catch (error) {
+    errEl.innerText = error.code === 'auth/network-request-failed' ? authErrors[error.code] : "خطأ في الدخول: تأكد من البريد وكلمة المرور";
+  }
+};
+
+window.resetPassword = async function () {
+  const email = $('loginEmail').value.trim();
+  const errEl = $('authError');
+  errEl.innerText = "";
+  if (!email) { errEl.innerText = "اكتب بريدك في الحقل أعلاه أولاً"; return; }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showToast("أُرسل رابط إعادة تعيين كلمة المرور إلى بريدك");
+  } catch (error) {
+    errEl.innerText = authErrors[error.code] || "تعذر إرسال الرابط، تأكد من البريد";
+  }
+};
+
+window.logoutUser = async function () { await signOut(auth); };
+
+const readNum = id => {
+  const v = parseFloat($(id).value);
+  return isNaN(v) || v < 0 ? 0 : v;
+};
+
+window.saveSettings = async function () {
+  if (!currentUserUid) return;
+  const btn = $('saveSettingsBtn');
+  const original = btn.innerText;
+  btn.disabled = true;
+  btn.innerText = "جاري الحفظ... ⏳";
+  btn.classList.add('opacity-50', 'cursor-not-allowed');
+  try {
+    await setDoc(doc(db, "userPrices", currentUserUid), {
+      oilPrice100: readNum('oilPrice100'),
+      alcPrice100: readNum('alcPrice100'),
+      bottlePrice: readNum('bottlePrice'),
+      bottlePrice30: readNum('bottlePrice30'),
+      bottlePrice50: readNum('bottlePrice50'),
+      bottlePrice100: readNum('bottlePrice100'),
+      oilStock: readNum('oilStock'),
+      alcStock: readNum('alcStock')
+    }, { merge: true });
+    toggleSettingsModal(false);
+    showToast("تم حفظ الإعدادات والمخزون بنجاح");
+    if (!$('results').classList.contains('hidden')) calculatePerfume();
+  } catch (error) {
+    showToast("حدث خطأ أثناء الحفظ: " + error.message, false);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = original;
+    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+  }
+};
+
+window.confirmProduction = async function () {
+  if (!currentUserUid || !window.lastCalc) return;
+  const { oilAmount, alcAmount } = window.lastCalc;
+  const oilStock = readNum('oilStock'), alcStock = readNum('alcStock');
+  if (oilAmount > oilStock || alcAmount > alcStock) {
+    showToast("المخزون لا يكفي لهذه التركيبة", false);
+    return;
+  }
+  const newOil = +(oilStock - oilAmount).toFixed(2);
+  const newAlc = +(alcStock - alcAmount).toFixed(2);
+  try {
+    await setDoc(doc(db, "userPrices", currentUserUid), { oilStock: newOil, alcStock: newAlc }, { merge: true });
+    $('oilStock').value = newOil;
+    $('alcStock').value = newAlc;
+    showToast("تم خصم الكميات من المخزون");
+    calculatePerfume();
+  } catch (error) {
+    showToast("تعذر تحديث المخزون: " + error.message, false);
+  }
+};
+
+async function loadUserData(uid) {
+  try {
+    const snap = await getDoc(doc(db, "userPrices", uid));
+    if (!snap.exists()) return;
+    const d = snap.data();
+    if (d.name && !auth.currentUser?.displayName) $('userNameDisplay').innerText = "مرحباً، " + d.name;
+    ['oilPrice100', 'alcPrice100', 'bottlePrice', 'oilStock', 'alcStock'].forEach(k => { $(k).value = d[k] || 0; });
+    [30, 50, 100].forEach(sz => { $('bottlePrice' + sz).value = d['bottlePrice' + sz] ?? d.bottlePrice ?? 0; });
+  } catch (error) {
+    console.error("خطأ في جلب البيانات:", error);
+    showToast("تعذر جلب بياناتك المحفوظة", false);
+  }
+}
+</script>
+</body>
+</html>
