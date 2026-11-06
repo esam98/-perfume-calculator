@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>حاسبة وتكلفة العطور الاحترافية - عصام</title>
-<script>try{document.documentElement.dataset.s=localStorage.getItem('pc_in')==='1'?'app':'boot'}catch(e){document.documentElement.dataset.s='boot'}</script>
+<script>(function(r){try{r.dataset.s=localStorage.getItem('pc_in')==='1'?'app':'boot';r.dataset.theme=localStorage.getItem('pc_theme')||'gold'}catch(e){r.dataset.s='boot';r.dataset.theme='gold'}})(document.documentElement)</script>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0b1220">
+<meta name="theme-color" content="var(--bg)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="حاسبة العطور">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -15,63 +15,104 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'Cairo',system-ui,sans-serif;background:#0b1220;color:#f1f5f9;min-height:100vh;padding:20px 14px 40px;line-height:1.6}
+body{font-family:'Cairo',system-ui,sans-serif;background:var(--bg);color:var(--fg);min-height:100vh;padding:20px 14px 90px;line-height:1.6}
 .wrap{max-width:560px;margin:0 auto}
-.card{background:#162032;border:1px solid #2a3a52;border-radius:18px;padding:20px}
-h1{font-size:1.35rem;color:#fbbf24;font-weight:700}
-h2{font-size:1.05rem;color:#fcd34d;font-weight:600;margin-bottom:12px}
-.muted{color:#94a3b8;font-size:.78rem}
-.lbl{display:block;font-size:.75rem;color:#cbd5e1;margin-bottom:4px}
-.inp{width:100%;background:#0b1220;border:1px solid #3b4d68;border-radius:10px;padding:10px 12px;color:#fff;font:inherit;font-size:.9rem;outline:none}
-.inp:focus{border-color:#fbbf24}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+h1{font-size:1.35rem;color:var(--acc);font-weight:700}
+h2{font-size:1.05rem;color:var(--acc2);font-weight:600;margin-bottom:12px}
+.muted{color:var(--mut);font-size:.78rem}
+.lbl{display:block;font-size:.75rem;color:var(--fg2);margin-bottom:4px}
+.inp{width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;color:var(--fg);font:inherit;font-size:.9rem;outline:none}
+.inp:focus{border-color:var(--acc)}
 .ltr{direction:ltr;text-align:left}
 .field{margin-bottom:12px}
 .btn,.btn2{width:100%;border:0;border-radius:12px;padding:12px;font:inherit;font-weight:700;font-size:.9rem;cursor:pointer}
-.btn{background:#f59e0b;color:#0b1220}.btn:active{background:#d97706}
-.btn2{background:#25344b;color:#fbbf24;margin-top:8px}.btn2:active{background:#334866}
+.btn{background:var(--btn);color:var(--btnfg)}.btn:active{background:var(--btnh)}
+.btn2{background:var(--b2);color:var(--acc);margin-top:8px}.btn2:active{background:var(--b2h)}
 .btn:disabled{opacity:.5}
-.link{background:none;border:0;color:#fbbf24;font:inherit;font-size:.78rem;text-decoration:underline;cursor:pointer}
-.tabs{display:flex;background:#0b1220;padding:4px;border-radius:12px;border:1px solid #2a3a52;margin:16px 0}
-.tab{flex:1;border:0;background:none;color:#94a3b8;padding:8px;border-radius:9px;font:inherit;font-weight:600;font-size:.85rem;cursor:pointer}
-.tab.on{background:#f59e0b;color:#0b1220}
-.err{color:#f87171;font-size:.78rem;text-align:center;margin-top:10px;min-height:1em}
+.link{background:none;border:0;color:var(--acc);font:inherit;font-size:.78rem;text-decoration:underline;cursor:pointer}
+.tabs{display:flex;background:var(--bg);padding:4px;border-radius:12px;border:1px solid var(--line);margin:16px 0}
+.tab{flex:1;border:0;background:none;color:var(--mut);padding:8px;border-radius:9px;font:inherit;font-weight:600;font-size:.85rem;cursor:pointer}
+.tab.on{background:var(--btn);color:var(--btnfg)}
+.err{color:var(--bad);font-size:.78rem;text-align:center;margin-top:10px;min-height:1em}
 .hide{display:none!important}
 #splash,#authSection,#app{display:none}
 html[data-s=boot] #splash{display:flex}
 html[data-s=auth] #authSection{display:block}
 html[data-s=app] #app{display:block}
-#splash{position:fixed;inset:0;align-items:center;justify-content:center;background:#0b1220}
-.spin{width:38px;height:38px;border:4px solid #2a3a52;border-top-color:#fbbf24;border-radius:50%;animation:sp .8s linear infinite}
+#splash{position:fixed;inset:0;align-items:center;justify-content:center;background:var(--bg)}
+.spin{width:38px;height:38px;border:4px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:sp .8s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
-.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #2a3a52}
-.gear{width:42px;height:42px;border-radius:50%;border:0;background:#25344b;font-size:1.2rem;cursor:pointer}
+.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.gear{width:42px;height:42px;border-radius:50%;border:0;background:var(--b2);font-size:1.2rem;cursor:pointer}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:2px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.chip{border:1px solid #3b4d68;background:#0b1220;color:#cbd5e1;padding:7px 16px;border-radius:10px;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
-.chip.on{background:#f59e0b;border-color:#f59e0b;color:#0b1220}
+.chip{border:1px solid var(--line2);background:var(--bg);color:var(--fg2);padding:7px 16px;border-radius:10px;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
+.chip.on{background:var(--btn);border-color:var(--btn);color:var(--btnfg)}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
 @media(max-width:480px){.grid3{grid-template-columns:1fr}}
 .alert{border:1px solid;border-radius:12px;padding:10px 12px;font-size:.78rem;margin-top:14px}
 .alert.warn{background:#3b1217;border-color:#b91c1c;color:#fecaca}
 .alert.info{background:#0c2a40;border-color:#0369a1;color:#bae6fd}
-#results{margin-top:20px;background:#0b1220;border:1px solid #2a3a52;border-radius:14px;padding:14px}
+#results{margin-top:20px;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px}
 #printableArea{padding:6px}
-.rhead{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2a3a52;padding-bottom:8px;margin-bottom:6px}
-.rhead h3{font-size:.95rem;color:#fbbf24}
+.rhead{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:6px}
+.rhead h3{font-size:.95rem;color:var(--acc)}
 table{width:100%;border-collapse:collapse;text-align:right;font-size:.88rem}
-th{color:#94a3b8;font-size:.75rem;font-weight:600;padding:8px 6px;border-bottom:1px solid #2a3a52}
-td{padding:9px 6px;border-bottom:1px solid #1d2b40}
+th{color:var(--mut);font-size:.75rem;font-weight:600;padding:8px 6px;border-bottom:1px solid var(--line)}
+td{padding:9px 6px;border-bottom:1px solid var(--row)}
 tfoot td{border-bottom:0;font-weight:700}
-.gold{color:#fcd34d}.green{color:#34d399}
+.gold{color:var(--acc2)}.green{color:var(--ok)}
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);align-items:center;justify-content:center;padding:14px;z-index:50}
 .modal.open{display:flex}
-.mbox{background:#162032;border:1px solid #2a3a52;border-radius:18px;width:100%;max-width:440px;padding:20px}
-.mbody{max-height:65vh;overflow-y:auto;padding:2px}
-.mhead{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2a3a52;padding-bottom:10px;margin-bottom:12px}
-.mhead button{background:none;border:0;color:#94a3b8;font-size:1.6rem;cursor:pointer}
-h4{font-size:.75rem;color:#94a3b8;margin:8px 0 8px}
+.mbox{background:var(--card);border:1px solid var(--line);border-radius:18px;width:100%;max-width:440px;padding:20px}
+.mbody{padding:2px}
+.mhead{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:12px}
+.mhead button{background:none;border:0;color:var(--mut);font-size:1.6rem;cursor:pointer}
+h4{font-size:.75rem;color:var(--mut);margin:8px 0 8px}
 #toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:60;padding:9px 18px;border-radius:12px;font-size:.85rem;font-weight:600;color:#fff;display:none;max-width:90%}
 #toast.ok{background:#059669}#toast.bad{background:#dc2626}
+.xrow{display:grid;grid-template-columns:1.3fr .7fr 1fr auto;gap:6px;margin-bottom:8px}
+.xrow .inp{padding:8px 6px;font-size:.8rem}
+.sep{border:0;border-top:1px solid var(--line);margin:16px 0}
+html[data-theme=dark]{--bg:#0b1220;--card:#162032;--line:#2a3a52;--line2:#3b4d68;--fg:#f1f5f9;--fg2:#cbd5e1;--mut:#94a3b8;--acc:#fbbf24;--acc2:#fcd34d;--btn:#f59e0b;--btnh:#d97706;--btnfg:#0b1220;--b2:#25344b;--b2h:#334866;--row:#1d2b40;--ok:#34d399;--bad:#f87171;--info:#60a5fa}
+html[data-theme=gold]{--bg:#070707;--card:#121212;--line:#3a3016;--line2:#54461f;--fg:#f7f1e1;--fg2:#e5d9b8;--mut:#9c9272;--acc:#e0b84a;--acc2:#f2d27a;--btn:#d4af37;--btnh:#b8962c;--btnfg:#0a0a0a;--b2:#1c1a14;--b2h:#2a2618;--row:#1d1a10;--ok:#4ade80;--bad:#f87171;--info:#7dd3fc}
+html[data-theme=light]{--bg:#f1f5f9;--card:#ffffff;--line:#e2e8f0;--line2:#cbd5e1;--fg:#0f172a;--fg2:#334155;--mut:#64748b;--acc:#b45309;--acc2:#92400e;--btn:#d97706;--btnh:#b45309;--btnfg:#ffffff;--b2:#f1f5f9;--b2h:#e2e8f0;--row:#f1f5f9;--ok:#059669;--bad:#dc2626;--info:#2563eb}
+.panel,.step{display:none}.panel.on,.step.on{display:block}
+.dots{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:14px}
+.dots span{width:26px;height:26px;border-radius:50%;background:var(--b2);color:var(--mut);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700}
+.dots span.on{background:var(--btn);color:var(--btnfg)}.dots i{width:28px;height:2px;background:var(--line)}
+.bigprice{text-align:center;padding:10px 0 4px}.bigprice b{display:block;font-size:2.6rem;color:var(--ok);line-height:1.2}
+.nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);z-index:20}
+html[data-s=app] .nav{display:flex}
+.nav button{flex:1;background:none;border:0;color:var(--mut);padding:8px 4px 10px;font:inherit;font-size:1.2rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.3}
+.nav button span{font-size:.7rem;font-weight:600}.nav button.on{color:var(--acc)}
+.acts{display:grid;gap:10px;margin-top:14px}
+.acts2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.act{border:1px solid var(--line2);background:var(--b2);color:var(--fg);border-radius:14px;padding:12px 8px;font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;line-height:1.4;text-align:center}
+.act b{font-size:1.4rem;font-weight:400}
+.act:active{transform:scale(.98)}
+.act.main{flex-direction:row;background:var(--btn);border-color:var(--btn);color:var(--btnfg);font-size:.95rem;padding:15px}
+.act.ok{color:var(--ok);border-color:var(--ok)}
+.act:disabled{opacity:.6}
+.inv{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.inv small{display:block;color:var(--mut);font-size:.72rem}
+.inv .del{background:none;border:0;font-size:1.3rem;cursor:pointer;padding:4px}
+.mrow{display:flex;align-items:center;gap:12px;width:100%;background:var(--b2);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px;color:var(--fg);font:inherit;font-weight:600;font-size:.95rem;cursor:pointer;text-align:right}
+.mrow:active{background:var(--b2h)}
+.mi{width:40px;height:40px;border-radius:12px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+.mt{flex:1}.mc{color:var(--mut);font-size:1.6rem;line-height:1}
+.mrow.out{color:var(--bad);border-color:var(--bad);margin-top:14px}
+.inv2{position:relative;background:var(--b2);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
+.inv2:active{background:var(--b2h)}
+.inv2 .top{display:flex;align-items:center;gap:8px;padding-left:40px}
+.inv2 .top b{font-size:1rem}
+.badge{background:var(--bg);border:1px solid var(--line2);color:var(--acc);border-radius:20px;padding:1px 10px;font-size:.72rem;font-weight:700;white-space:nowrap}
+.inv2 .meta{color:var(--mut);font-size:.72rem;margin:4px 0 8px}
+.inv2 .nums{display:flex;gap:18px;font-size:.8rem;color:var(--mut)}
+.inv2 .nums b{font-size:1.05rem}
+.inv2 .del{position:absolute;left:6px;top:6px;background:none;border:0;font-size:1.2rem;cursor:pointer;padding:6px}
+.dcard{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
 @media print{
   body *{visibility:hidden}
   #printableArea,#printableArea *{visibility:visible;color:#000!important;border-color:#cbd5e1!important;background:#fff!important}
@@ -112,16 +153,16 @@ h4{font-size:.75rem;color:#94a3b8;margin:8px 0 8px}
     <div>
       <h1>حاسبة العطور الاحترافية</h1>
       <div class="row">
-        <span id="userName" class="muted" style="color:#cbd5e1;font-weight:600">مرحباً</span>
-        <button class="link" style="color:#f87171" onclick="logoutUser()">تسجيل الخروج</button>
-        <button id="installBtn" class="link hide" style="color:#34d399" onclick="installApp()">📲 تثبيت التطبيق</button>
+        <span id="userName" class="muted" style="color:var(--fg2);font-weight:600">مرحباً</span>
+        
+        <button id="installBtn" class="link hide" style="color:var(--ok)" onclick="installApp()">📲 تثبيت التطبيق</button>
       </div>
     </div>
-    <button class="gear" onclick="toggleSettingsModal(true)" title="الإعدادات">⚙️</button>
   </div>
 
-  <h2>إعدادات التركيبة الحالية</h2>
-  <label class="lbl">حجم العبوة الجاهز</label>
+  <div id="pCalc" class="panel on">
+<div class="dots"><span class="on">1</span><i></i><span>2</span><i></i><span>3</span></div>
+<div class="step on" data-step="1"><h2>الحجم والتركيز</h2><label class="lbl">حجم العبوة الجاهز</label>
   <div id="sizeChips" class="chips">
     <button class="chip" data-size="30" onclick="setSize(30)">30 مل</button>
     <button class="chip" data-size="50" onclick="setSize(50)">50 مل</button>
@@ -133,38 +174,59 @@ h4{font-size:.75rem;color:#94a3b8;margin:8px 0 8px}
     <div><label class="lbl">نسبة التركيز (%)</label><input type="number" inputmode="decimal" id="concentration" value="25" min="0" max="100" class="inp"></div>
     <div><label class="lbl">هامش الربح (%)</label><input type="number" inputmode="decimal" id="profitMargin" value="30" min="0" class="inp"></div>
   </div>
-  <button class="btn" onclick="calculatePerfume()">احسب الكميات والتكلفة وسعر البيع</button>
-  <div id="stockAlert" class="hide"></div>
-
-  <div id="results" class="hide">
+  <button class="btn" onclick="showStep(2)">التالي ←</button></div>
+<div class="step" data-step="2"><h2>الزيوت والتقريب</h2><label class="lbl">زيوت إضافية (الاسم / النسبة % من الحجم / السعر لكل 100 مل)</label>
+  <div id="extras"></div>
+  <button class="btn2" style="margin:0 0 14px" onclick="addExtra()">➕ إضافة زيت آخر للتركيبة</button>
+  <div class="field"><label class="lbl">تقريب سعر البيع لأعلى</label>
+    <select id="roundStep" class="inp" onchange="try{localStorage.setItem('pc_round',this.value)}catch(e){}">
+      <option value="0">بدون تقريب</option><option value="50">50</option><option value="100">100</option><option value="500">500</option><option value="1000">1000</option>
+    </select></div>
+  <button class="btn" onclick="calculatePerfume(true)">احسب الكميات والتكلفة وسعر البيع</button><button class="btn2" onclick="showStep(1)">→ رجوع</button></div>
+<div class="step" data-step="3"><div class="bigprice"><span class="muted">سعر البيع المقترح</span><b id="bigPrice">0</b><span class="muted" id="bigSub"></span></div><div id="stockAlert" class="hide"></div><div id="results" class="hide">
     <div id="printableArea">
       <div class="rhead"><h3>تقرير تركيبة العطر</h3><span id="resultDate" class="muted"></span></div>
       <table>
         <thead><tr><th>المكون</th><th>الكمية</th><th>التكلفة</th></tr></thead>
-        <tbody>
-          <tr><td>الزيت العطري</td><td id="resOilAmount">0</td><td id="resOilCost" class="gold">0</td></tr>
-          <tr><td>الكحول</td><td id="resAlcAmount">0</td><td id="resAlcCost" class="gold">0</td></tr>
-          <tr><td>العبوة / الغطاء</td><td>-</td><td id="resBottleCost" class="gold">0</td></tr>
-        </tbody>
+        <tbody id="resBody"></tbody>
         <tfoot>
           <tr><td colspan="2">التكلفة الإجمالية:</td><td id="resTotalCost">0</td></tr>
-          <tr class="green"><td colspan="2">سعر البيع المقترح (مع الربح):</td><td id="resSellingPrice">0</td></tr>
+          <tr class="green"><td colspan="2" id="sellLbl">سعر البيع المقترح:</td><td id="resSellingPrice">0</td></tr>
         </tfoot>
       </table>
     </div>
-    <button class="btn2" onclick="window.print()">🖨️ طباعة / حفظ التقرير كـ PDF</button>
-    <button id="saleBtn" class="btn2" style="color:#60a5fa" onclick="logSale()">📒 تسجيل الفاتورة في الشيت</button>
-    <button class="btn2" style="color:#34d399" onclick="confirmProduction()">✅ تأكيد التصنيع وخصم الكميات من المخزون</button>
+    <div class="acts">
+      <button id="saleBtn" class="act main" onclick="logSale()">📒 تسجيل الفاتورة في الشيت</button>
+      <div class="acts2">
+        <button class="act" onclick="window.print()"><b>🖨️</b><span>طباعة / PDF</span></button>
+        <button class="act ok" onclick="confirmProduction()"><b>✅</b><span>تأكيد التصنيع وخصم المخزون</span></button>
+      </div>
+    </div>
+  </div><button class="btn2" onclick="showStep(2)">→ رجوع</button></div>
+</div>
+<div id="pForm" class="panel"><p class="muted" style="margin-bottom:10px">يُحفظ ما أدخلته في الحاسبة الآن (الحجم والتركيز والزيوت والتقريب).</p><label class="lbl">تركيباتي المحفوظة</label>
+  <select id="formulaSelect" class="inp" onchange="loadFormula()" style="margin-bottom:8px"><option value="">— اختر تركيبة محفوظة —</option></select>
+  <input id="formulaName" class="inp" placeholder="اسم العطر / التركيبة (للحفظ وللفاتورة)" style="margin-bottom:8px">
+  <div style="display:flex;gap:8px;margin-bottom:6px">
+    <button class="btn2" style="margin:0;flex:1" onclick="saveFormula()">💾 حفظ التركيبة</button>
+    <button class="btn2" style="margin:0;flex:1;color:var(--bad)" onclick="deleteFormula()">🗑️ حذف</button>
   </div>
-</div>
-</div>
-
-<!-- الإعدادات -->
-<div id="settingsModal" class="modal">
-  <div class="mbox">
-    <div class="mhead"><h2 style="margin:0">الإعدادات والمخزون</h2><button onclick="toggleSettingsModal(false)">&times;</button></div>
-    <div class="mbody">
-      <h4>أسعار المواد</h4>
+  </div>
+<div id="pSet" class="panel"><div class="mhead"><div style="display:flex;align-items:center;gap:6px"><button id="mBack" class="hide" onclick="setTab('menu')">→</button><h2 id="mTitle" style="margin:0">الإعدادات</h2></div></div>
+<div class="mbody">
+      <div class="sp" id="sp-menu">
+        <button class="mrow" onclick="setTab('theme')"><span class="mi">🎨</span><span class="mt">المظهر</span><span class="mc">‹</span></button>
+        <button class="mrow" onclick="setTab('prices')"><span class="mi">💰</span><span class="mt">أسعار المواد</span><span class="mc">‹</span></button>
+        <button class="mrow" onclick="setTab('stock')"><span class="mi">📦</span><span class="mt">المخزون</span><span class="mc">‹</span></button>
+        <button class="mrow" onclick="openFormulas()"><span class="mi">📚</span><span class="mt">تركيباتي المحفوظة</span><span class="mc">‹</span></button>
+        <button class="mrow" onclick="setTab('acc')"><span class="mi">👤</span><span class="mt">معلومات الحساب</span><span class="mc">‹</span></button>
+        <button class="mrow out" onclick="logoutUser()"><span class="mi">🚪</span><span class="mt">تسجيل الخروج</span></button>
+      </div>
+      <div class="sp hide" id="sp-theme"><h4>المظهر</h4>
+      <div class="chips"><button class="chip" data-t="dark" onclick="setTheme('dark')">🌙 داكن</button><button class="chip" data-t="gold" onclick="setTheme('gold')">✨ أسود وذهبي</button><button class="chip" data-t="light" onclick="setTheme('light')">☀️ فاتح</button></div>
+      
+      </div>
+      <div class="sp hide" id="sp-prices"><h4>أسعار المواد</h4>
       <div class="field"><label class="lbl">سعر الزيت العطري (لكل 100 مل)</label><input type="number" inputmode="decimal" id="oilPrice100" step="0.01" min="0" class="inp" placeholder="500"></div>
       <div class="field"><label class="lbl">سعر الكحول (لكل 100 مل)</label><input type="number" inputmode="decimal" id="alcPrice100" step="0.01" min="0" class="inp" placeholder="50"></div>
       <h4>أسعار العبوات (مع الغطاء)</h4>
@@ -172,14 +234,46 @@ h4{font-size:.75rem;color:#94a3b8;margin:8px 0 8px}
       <div class="field"><label class="lbl">عبوة 50 مل</label><input type="number" inputmode="decimal" id="bottlePrice50" step="0.01" min="0" class="inp" placeholder="130"></div>
       <div class="field"><label class="lbl">عبوة 100 مل</label><input type="number" inputmode="decimal" id="bottlePrice100" step="0.01" min="0" class="inp" placeholder="150"></div>
       <div class="field"><label class="lbl">عبوة بحجم مخصص</label><input type="number" inputmode="decimal" id="bottlePrice" step="0.01" min="0" class="inp" placeholder="150"></div>
-      <h4>المخزون المتاح حالياً</h4>
+      </div>
+      <div class="sp hide" id="sp-stock"><h4>المخزون المتاح حالياً</h4>
       <div class="field"><label class="lbl">الزيت العطري (مل)</label><input type="number" inputmode="decimal" id="oilStock" step="1" min="0" class="inp" placeholder="1000"></div>
-      <div class="field"><label class="lbl">الكحول (مل)</label><input type="number" inputmode="decimal" id="alcStock" step="1" min="0" class="inp" placeholder="5000"></div>
+      <div class="field"><label class="lbl">الكحول (مل)</label><input type="number" inputmode="decimal" id="alcStock" step="1" min="0" class="inp" placeholder="5000"></div></div>
+      
+      <div class="sp hide" id="sp-acc">
+        <div class="inv"><div><small>الاسم</small><b id="accName">-</b></div></div>
+        <div class="inv"><div><small>البريد الإلكتروني</small><b id="accEmail" dir="ltr">-</b></div></div>
+        <div class="inv"><div><small>تاريخ إنشاء الحساب</small><b id="accDate">-</b></div></div>
+        <button class="btn2" onclick="changePassword()">🔑 إرسال رابط تغيير كلمة المرور</button>
+        <button class="mrow out" onclick="document.getElementById('delBox').classList.toggle('hide')"><span class="mi">🗑️</span><span class="mt">حذف الحساب</span></button>
+        <div id="delBox" class="alert warn hide">
+          <p>سيُحذف حسابك وأسعارك ومخزونك وتركيباتك نهائياً ولا يمكن التراجع. فواتير الشيت لا تُحذف.</p>
+          <input type="password" id="delPass" class="inp ltr" placeholder="اكتب كلمة المرور للتأكيد" style="margin:10px 0">
+          <button class="btn" style="background:var(--bad);color:#fff" onclick="deleteAccount()">تأكيد الحذف نهائياً</button>
+        </div>
+      </div>
     </div>
-    <button id="saveSettingsBtn" class="btn" style="margin-top:12px" onclick="saveSettings()">حفظ الإعدادات والمخزون في السحابة</button>
+<button id="saveSettingsBtn" class="btn" style="margin-top:12px" onclick="saveSettings()">حفظ الإعدادات والمخزون في السحابة</button></div>
+<div id="pInv" class="panel">
+  <div id="invListBox">
+    <div class="rhead" style="border:0;margin-bottom:6px"><h2 style="margin:0">الفواتير</h2>
+      <div style="display:flex;gap:6px"><button class="chip" onclick="loadInvoices()">🔄 تحديث</button><button class="chip" style="color:var(--bad);border-color:var(--bad)" onclick="deleteAllInvoices()">🗑️ حذف الكل</button></div></div>
+    <div id="invList"></div>
   </div>
+  <div id="invDetail" class="hide"></div>
+</div>
+</div>
 </div>
 
+<div id="cfm" class="modal"><div class="mbox" style="max-width:340px;text-align:center">
+  <div style="font-size:2.2rem">⚠️</div>
+  <h2 id="cfmTitle" style="margin:6px 0"></h2>
+  <p id="cfmText" class="muted" style="margin-bottom:18px;font-size:.85rem"></p>
+  <div style="display:flex;gap:10px"><button id="cfmNo" class="btn2" style="margin:0;flex:1">إلغاء</button><button id="cfmYes" class="btn" style="flex:1;background:var(--bad);color:#fff"></button></div>
+</div></div>
+
+<nav class="nav"><button id="nvCalc" class="on" onclick="showPanel('calc')">🧮<span>الحاسبة</span></button><button id="nvInv" onclick="showPanel('inv')">🧾<span>الفواتير</span></button><button id="nvSet" onclick="showPanel('set')">⚙️<span>الإعدادات</span></button></nav>
+
+<!-- الإعدادات -->
 <script>
 const $ = id => document.getElementById(id);
 const PRICE_KEYS = ['oilPrice100','alcPrice100','bottlePrice','oilStock','alcStock'];
@@ -195,7 +289,8 @@ function applyData(d) {
   if (!d) return;
   PRICE_KEYS.forEach(k => { $(k).value = d[k] || 0; });
   [30, 50, 100].forEach(s => { $('bottlePrice' + s).value = d['bottlePrice' + s] ?? d.bottlePrice ?? 0; });
-  if (d.name) $('userName').textContent = 'مرحباً، ' + d.name;
+  if (d.name) { $('userName').textContent = 'مرحباً، ' + d.name; $('accName').textContent = d.name; }
+  if (d.formulas) { window.formulas = d.formulas; renderFormulaSelect($('formulaSelect').value); }
 }
 
 function switchTab(tab) {
@@ -206,7 +301,7 @@ function switchTab(tab) {
   $('registerTabBtn').classList.toggle('on', !login);
   $('authError').textContent = '';
 }
-function toggleSettingsModal(show) { $('settingsModal').classList.toggle('open', show); }
+function toggleSettingsModal(show) { if (show) showPanel('set'); else setTab('menu'); }
 
 window.selectedSize = 100;
 function renderChips() {
@@ -224,25 +319,39 @@ function syncChips() {
   renderChips();
 }
 
-function calculatePerfume() {
+function readExtras() {
+  return [...document.querySelectorAll('#extras .xrow')].map(r => {
+    const i = r.querySelectorAll('input');
+    return { name: i[0].value.trim(), pct: parseFloat(i[1].value) || 0, price: parseFloat(i[2].value) || 0 };
+  });
+}
+function addExtra(e) {
+  const d = document.createElement('div'); d.className = 'xrow';
+  d.innerHTML = '<input class="inp" placeholder="اسم الزيت"><input class="inp" type="number" inputmode="decimal" min="0" placeholder="%"><input class="inp" type="number" inputmode="decimal" min="0" placeholder="السعر"><button class="link" style="color:var(--bad)" onclick="this.parentNode.remove()">✕</button>';
+  if (e) { const i = d.querySelectorAll('input'); i[0].value = e.name || ''; i[1].value = e.pct || ''; i[2].value = e.price || ''; }
+  $('extras').appendChild(d);
+}
+
+function calculatePerfume(go) {
   const g = id => parseFloat($(id).value) || 0;
   const totalVol = g('totalVol'), concentration = g('concentration'), profitMargin = g('profitMargin');
   const oilPrice100 = g('oilPrice100'), alcPrice100 = g('alcPrice100');
   const bottlePrice = [30, 50, 100].includes(window.selectedSize) ? g('bottlePrice' + window.selectedSize) : g('bottlePrice');
   const oilStock = g('oilStock'), alcStock = g('alcStock');
+  const extras = readExtras().filter(x => x.pct > 0);
+  const totalPct = concentration + extras.reduce((a, x) => a + x.pct, 0);
 
   if (totalVol <= 0) return showToast('الحجم الإجمالي يجب أن يكون أكبر من صفر', false);
-  if (concentration < 0 || concentration > 100) return showToast('نسبة التركيز يجب أن تكون بين 0 و100', false);
+  if (concentration < 0 || totalPct > 100) return showToast('مجموع نسب الزيوت يجب أن يكون بين 0 و100', false);
   if (profitMargin < 0) return showToast('هامش الربح لا يمكن أن يكون سالباً', false);
 
   const oilAmount = totalVol * concentration / 100;
-  const alcAmount = totalVol - oilAmount;
+  const alcAmount = totalVol - totalVol * totalPct / 100;
 
   const box = $('stockAlert'), alerts = [];
   let kind = 'warn';
   if (oilStock === 0 && alcStock === 0) {
-    alerts.push('لم تحدد المخزون أو الأسعار بعد. افتح الإعدادات (⚙️) وأدخلها ثم احفظ.');
-    kind = 'info';
+    // لا تنبيه قبل ضبط المخزون
   } else {
     if (oilAmount > oilStock) alerts.push(`تنبيه: كمية الزيت المطلوبة (${oilAmount.toFixed(2)} مل) أكبر من المخزون المتاح (${oilStock} مل)!`);
     if (alcAmount > alcStock) alerts.push(`تنبيه: كمية الكحول المطلوبة (${alcAmount.toFixed(2)} مل) أكبر من المخزون المتاح (${alcStock} مل)!`);
@@ -252,20 +361,55 @@ function calculatePerfume() {
 
   const oilCost = oilAmount * oilPrice100 / 100;
   const alcCost = alcAmount * alcPrice100 / 100;
-  const totalCost = oilCost + alcCost + bottlePrice;
-  const selling = totalCost * (1 + profitMargin / 100);
+  const extraCosts = extras.map(x => totalVol * x.pct / 100 * x.price / 100);
+  const totalCost = oilCost + alcCost + bottlePrice + extraCosts.reduce((a, c) => a + c, 0);
+  const raw = totalCost * (1 + profitMargin / 100);
+  const step = parseFloat($('roundStep').value) || 0;
+  const selling = step ? Math.ceil(raw / step - 1e-9) * step : raw;
 
   window.lastCalc = { oilAmount, alcAmount, totalCost, selling };
+  const body = $('resBody'); body.innerHTML = ''; const rows = [];
+  const addRow = (n, a, c) => {
+    rows.push([n, a, c]);
+    const tr = document.createElement('tr');
+    [n, a, c].forEach((t, i) => { const td = document.createElement('td'); td.textContent = t; if (i === 2) td.className = 'gold'; tr.appendChild(td); });
+    body.appendChild(tr);
+  };
+  addRow(extras.length ? 'الزيت الأساسي' : 'الزيت العطري', oilAmount.toFixed(2) + ' مل', oilCost.toFixed(2));
+  extras.forEach((x, i) => addRow(x.name || 'زيت ' + (i + 2), (totalVol * x.pct / 100).toFixed(2) + ' مل', extraCosts[i].toFixed(2)));
+  addRow('الكحول', alcAmount.toFixed(2) + ' مل', alcCost.toFixed(2));
+  addRow('العبوة / الغطاء', '-', bottlePrice.toFixed(2));
+  window.lastCalc.rows = rows;
+
   $('resultDate').textContent = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
-  $('resOilAmount').textContent = oilAmount.toFixed(2) + ' مل';
-  $('resOilCost').textContent = oilCost.toFixed(2);
-  $('resAlcAmount').textContent = alcAmount.toFixed(2) + ' مل';
-  $('resAlcCost').textContent = alcCost.toFixed(2);
-  $('resBottleCost').textContent = bottlePrice.toFixed(2);
   $('resTotalCost').textContent = totalCost.toFixed(2);
   $('resSellingPrice').textContent = selling.toFixed(2);
   const sb = $('saleBtn'); sb.disabled = false; sb.textContent = '📒 تسجيل الفاتورة في الشيت';
+  $('bigPrice').textContent = selling.toFixed(2);
+  $('bigSub').textContent = 'التكلفة ' + totalCost.toFixed(2) + ' • الربح ' + (selling - totalCost).toFixed(2);
   $('results').classList.remove('hide');
+  if (go === true) showStep(3);
+}
+
+// التركيبات المحفوظة
+window.formulas = [];
+function renderFormulaSelect(sel) {
+  const s = $('formulaSelect');
+  s.innerHTML = '<option value="">— اختر تركيبة محفوظة —</option>';
+  window.formulas.forEach(f => { const o = document.createElement('option'); o.value = f.name; o.textContent = f.name; s.appendChild(o); });
+  s.value = sel || '';
+}
+function getFormulaState() {
+  return { name: $('formulaName').value.trim(), totalVol: parseFloat($('totalVol').value) || 0, concentration: parseFloat($('concentration').value) || 0,
+    profitMargin: parseFloat($('profitMargin').value) || 0, round: $('roundStep').value, extras: readExtras() };
+}
+function loadFormula() {
+  const f = window.formulas.find(x => x.name === $('formulaSelect').value);
+  if (!f) return;
+  $('formulaName').value = f.name; $('totalVol').value = f.totalVol; $('concentration').value = f.concentration;
+  $('profitMargin').value = f.profitMargin; $('roundStep').value = f.round || '0';
+  $('extras').innerHTML = ''; (f.extras || []).forEach(addExtra);
+  syncChips(); showPanel('calc'); calculatePerfume(true);
 }
 
 // تسجيل الفاتورة في Google Sheets
@@ -278,11 +422,12 @@ async function logSale() {
   const sale = {
     date: new Date().toISOString().split('T')[0],
     invoiceId: '#INV-' + Date.now().toString().slice(-7),
-    name: 'تركيبة خاصة',
+    name: $('formulaName').value.trim() || 'تركيبة خاصة',
     volume: parseFloat($('totalVol').value) || 0,
     cost, price,
     profit: +(price - cost).toFixed(2),
-    notes: 'تم البيع بنجاح'
+    notes: 'تم البيع بنجاح',
+    details: JSON.stringify({ rows: window.lastCalc.rows || [] })
   };
   try {
     await fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(sale) });
@@ -292,6 +437,123 @@ async function logSale() {
     btn.disabled = false; btn.textContent = '📒 تسجيل الفاتورة في الشيت';
     showToast('تعذر الاتصال بالشيت، تأكد من الإنترنت وحاول مرة أخرى', false);
   }
+}
+
+function showPanel(n) {
+  const ids = { calc: 'pCalc', form: 'pForm', inv: 'pInv', set: 'pSet' };
+  Object.keys(ids).forEach(k => $(ids[k]).classList.toggle('on', k === n));
+  $('nvCalc').classList.toggle('on', n === 'calc');
+  $('nvInv').classList.toggle('on', n === 'inv');
+  $('nvSet').classList.toggle('on', n === 'set');
+  if (n === 'set') setTab('menu');
+  if (n === 'inv') loadInvoices();
+  window.scrollTo(0, 0);
+}
+function openFormulas() { toggleSettingsModal(false); showPanel('form'); }
+function showStep(n, fromPop) {
+  if (!fromPop && n > 1) history.pushState({ s: n }, '');
+  document.querySelectorAll('.step').forEach(e => e.classList.toggle('on', +e.dataset.step === n));
+  document.querySelectorAll('.dots span').forEach((e, i) => e.classList.toggle('on', i < n));
+  window.scrollTo(0, 0);
+}
+window.addEventListener('popstate', e => showStep((e.state && e.state.s) || 1, true));
+function setTheme(t) {
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('pc_theme', t); } catch (e) {}
+  const m = document.querySelector('meta[name=theme-color]');
+  if (m) m.content = { dark: '#0b1220', gold: '#070707', light: '#f1f5f9' }[t];
+  document.querySelectorAll('[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+}
+
+const TITLES = { menu: 'الإعدادات', theme: 'المظهر', prices: 'أسعار المواد', stock: 'المخزون', inv: 'الفواتير', acc: 'معلومات الحساب' };
+function setTab(n) {
+  document.querySelectorAll('#pSet .sp').forEach(d => d.classList.toggle('hide', d.id !== 'sp-' + n));
+  $('mTitle').textContent = TITLES[n];
+  $('mBack').classList.toggle('hide', n === 'menu');
+  $('saveSettingsBtn').classList.toggle('hide', !['prices', 'stock'].includes(n));
+  if (n === 'inv') loadInvoices();
+}
+function note(box, text, bad) {
+  box.innerHTML = ''; const p = document.createElement('p');
+  p.className = 'muted'; p.style.textAlign = 'center'; if (bad) p.style.color = 'var(--bad)';
+  p.textContent = text; box.appendChild(p);
+}
+function askConfirm(title, text, okLabel) {
+  return new Promise(res => {
+    $('cfmTitle').textContent = title; $('cfmText').textContent = text; $('cfmYes').textContent = okLabel || 'تأكيد';
+    const box = $('cfm'); box.classList.add('open');
+    const done = v => { box.classList.remove('open'); $('cfmYes').onclick = $('cfmNo').onclick = box.onclick = null; res(v); };
+    $('cfmYes').onclick = () => done(true); $('cfmNo').onclick = () => done(false);
+    box.onclick = e => { if (e.target === box) done(false); };
+  });
+}
+const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const nm = x => (x === '' || isNaN(+x)) ? String(x) : String(+(+x).toFixed(2));
+function fmtDate(d) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+  const t = new Date(d);
+  return isNaN(t) ? String(d) : t.toLocaleDateString('en-CA');
+}
+window.invList = [];
+const post = body => fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) });
+
+function renderInvoices() {
+  const box = $('invList');
+  if (!window.invList.length) return note(box, 'لا توجد فواتير في الشيت');
+  box.innerHTML = window.invList.map(f => {
+    const id = esc(f.invoiceId);
+    return `<div class="inv2" onclick="showInv('${id}')">
+      <button class="del" onclick="event.stopPropagation();deleteInvoice('${id}')">🗑️</button>
+      <div class="top"><b>${esc(f.name)}</b><span class="badge">${esc(nm(f.volume))} مل</span></div>
+      <div class="meta"><span dir="ltr">${id}</span> • ${esc(fmtDate(f.date))}</div>
+      <div class="nums"><span>البيع <b style="color:var(--ok)">${esc(nm(f.price))}</b></span><span>الربح <b style="color:var(--acc)">${esc(nm(f.profit))}</b></span></div>
+    </div>`;
+  }).join('');
+}
+function closeInv() { $('invDetail').classList.add('hide'); $('invListBox').classList.remove('hide'); }
+function showInv(id) {
+  const f = window.invList.find(x => x.invoiceId === id);
+  if (!f) return;
+  let rows = [];
+  try { rows = JSON.parse(f.details).rows || []; } catch (e) {}
+  const body = rows.length
+    ? rows.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td class="gold">${esc(r[2])}</td></tr>`).join('')
+    : '<tr><td colspan="3" class="muted" style="text-align:center">تفاصيل المكونات غير متوفرة لهذه الفاتورة</td></tr>';
+  const d = $('invDetail');
+  d.innerHTML = `<button class="btn2" style="margin:0 0 12px" onclick="closeInv()">→ رجوع</button>
+    <div class="bigprice"><span class="muted">سعر البيع</span><b>${esc(nm(f.price))}</b><span class="muted">التكلفة ${esc(nm(f.cost))} • الربح ${esc(nm(f.profit))}</span></div>
+    <div class="dcard">
+      <div class="rhead"><h3>${esc(f.name)} — ${esc(nm(f.volume))} مل</h3><span class="muted">${esc(fmtDate(f.date))}</span></div>
+      <div class="muted" dir="ltr" style="text-align:right;margin-bottom:4px">${esc(f.invoiceId)}</div>
+      <table><thead><tr><th>المكون</th><th>الكمية</th><th>التكلفة</th></tr></thead><tbody>${body}</tbody>
+      <tfoot><tr><td colspan="2">التكلفة الإجمالية:</td><td>${esc(nm(f.cost))}</td></tr>
+      <tr class="green"><td colspan="2">سعر البيع:</td><td>${esc(nm(f.price))}</td></tr>
+      <tr><td colspan="2">صافي الربح:</td><td style="color:var(--acc)">${esc(nm(f.profit))}</td></tr></tfoot></table>
+    </div>
+    <button class="btn2" style="color:var(--bad)" onclick="deleteInvoice('${esc(f.invoiceId)}')">🗑️ حذف الفاتورة</button>`;
+  $('invListBox').classList.add('hide'); d.classList.remove('hide');
+  window.scrollTo(0, 0);
+}
+async function loadInvoices() {
+  const box = $('invList'); closeInv(); note(box, 'جاري التحميل...');
+  try {
+    const list = await (await fetch(SHEET_URL)).json();
+    if (!Array.isArray(list)) throw new Error('bad');
+    window.invList = list.reverse(); renderInvoices();
+  } catch (e) { note(box, 'تعذر جلب الفواتير. تأكد من تحديث سكربت الشيت ونشره من جديد.', true); }
+}
+async function deleteInvoice(id) {
+  if (!await askConfirm('حذف الفاتورة', 'سيتم حذف هذه الفاتورة من الشيت.', 'حذف')) return;
+  window.invList = window.invList.filter(f => f.invoiceId !== id);
+  closeInv(); renderInvoices(); showToast('تم حذف الفاتورة');
+  try { await post({ action: 'delete', invoiceId: id }); } catch (e) { showToast('تعذر الاتصال بالشيت، حدّث القائمة', false); }
+}
+async function deleteAllInvoices() {
+  const n = window.invList.length;
+  if (!n) return showToast('لا توجد فواتير لحذفها', false);
+  if (!await askConfirm('حذف كل الفواتير', 'سيتم حذف كل الفواتير (' + n + ') من الشيت نهائياً ولا يمكن التراجع.', 'حذف الكل')) return;
+  window.invList = []; renderInvoices(); showToast('تم حذف كل الفواتير');
+  try { await post({ action: 'deleteAll' }); } catch (e) { showToast('تعذر الاتصال بالشيت', false); }
 }
 
 // PWA
@@ -306,13 +568,15 @@ async function installApp() {
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 
 renderChips();
+setTheme(document.documentElement.dataset.theme);
+try { $('roundStep').value = localStorage.getItem('pc_round') || '0'; } catch (e) {}
 if (document.documentElement.dataset.s === 'app') applyData(getCache());
 </script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyCMo2jbgscNK7A8uEQd50oGSI4VhkrSSaA",
@@ -340,12 +604,15 @@ onAuthStateChanged(auth, user => {
     uid = user.uid;
     try { localStorage.setItem('pc_in', '1'); } catch (e) {}
     root.dataset.s = 'app';
-    if (user.displayName) $('userName').textContent = 'مرحباً، ' + user.displayName;
+    if (user.displayName) { $('userName').textContent = 'مرحباً، ' + user.displayName; $('accName').textContent = user.displayName; }
+    $('accEmail').textContent = user.email || '-';
+    if (user.metadata && user.metadata.creationTime) $('accDate').textContent = new Date(user.metadata.creationTime).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
     loadUserData(user.uid);
   } else {
     uid = null;
     try { localStorage.removeItem('pc_in'); localStorage.removeItem('pc_data'); } catch (e) {}
     root.dataset.s = 'auth';
+    showPanel('calc'); showStep(1);
     $('results').classList.add('hide');
     $('stockAlert').className = 'hide';
   }
@@ -399,7 +666,28 @@ window.resetPassword = async function () {
   catch (e) { err.textContent = authErrors[e.code] || 'تعذر إرسال الرابط، تأكد من البريد'; }
 };
 
-window.logoutUser = async function () { await signOut(auth); };
+window.changePassword = async function () {
+  const u = auth.currentUser;
+  if (!u || !u.email) return;
+  try { await sendPasswordResetEmail(auth, u.email); showToast('أُرسل رابط تغيير كلمة المرور إلى بريدك'); }
+  catch (e) { showToast('تعذر إرسال الرابط، حاول لاحقاً', false); }
+};
+window.deleteAccount = async function () {
+  const u = auth.currentUser, pass = $('delPass').value;
+  if (!u) return;
+  if (!pass) return showToast('اكتب كلمة المرور للتأكيد', false);
+  if (!await askConfirm('حذف الحساب', 'سيُحذف حسابك وبياناتك نهائياً ولا يمكن التراجع.', 'حذف نهائياً')) return;
+  try {
+    await reauthenticateWithCredential(u, EmailAuthProvider.credential(u.email, pass));
+    await deleteDoc(doc(db, 'userPrices', u.uid));
+    await deleteUser(u);
+    $('delPass').value = '';
+    showToast('تم حذف حسابك');
+  } catch (e) {
+    showToast(['auth/wrong-password', 'auth/invalid-credential'].includes(e.code) ? 'كلمة المرور غير صحيحة' : 'تعذر حذف الحساب: ' + (e.code || e.message), false);
+  }
+};
+window.logoutUser = async function () { toggleSettingsModal(false); await signOut(auth); };
 
 const num = id => { const v = parseFloat($(id).value); return isNaN(v) || v < 0 ? 0 : v; };
 
@@ -418,6 +706,25 @@ window.saveSettings = async function () {
   } catch (e) {
     showToast('حدث خطأ أثناء الحفظ: ' + e.message, false);
   } finally { btn.disabled = false; btn.textContent = txt; }
+};
+
+async function pushFormulas(list, sel, msg) {
+  try {
+    await setDoc(doc(db, 'userPrices', uid), { formulas: list }, { merge: true });
+    window.formulas = list; setCache({ formulas: list }); renderFormulaSelect(sel); showToast(msg);
+  } catch (e) { showToast('تعذر الحفظ: ' + e.message, false); }
+}
+window.saveFormula = async function () {
+  if (!uid) return;
+  const f = getFormulaState();
+  if (!f.name) return showToast('اكتب اسماً للتركيبة أولاً', false);
+  await pushFormulas([...window.formulas.filter(x => x.name !== f.name), f], f.name, 'تم حفظ التركيبة');
+};
+window.deleteFormula = async function () {
+  const n = $('formulaSelect').value;
+  if (!uid || !n) return showToast('اختر تركيبة لحذفها', false);
+  if (!await askConfirm('حذف التركيبة', 'هل تريد حذف التركيبة "' + n + '"؟', 'حذف')) return;
+  await pushFormulas(window.formulas.filter(x => x.name !== n), '', 'تم حذف التركيبة');
 };
 
 window.confirmProduction = async function () {
