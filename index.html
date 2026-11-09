@@ -113,10 +113,18 @@ html[data-s=app] .nav{display:flex}
 .inv2 .nums b{font-size:1.05rem}
 .inv2 .del{position:absolute;left:6px;top:6px;background:none;border:0;font-size:1.2rem;cursor:pointer;padding:6px}
 .dcard{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+.badge.bad{color:var(--bad);border-color:var(--bad)}
+.badge.ok{color:var(--ok);border-color:var(--ok)}
+.inv2 .top{flex-wrap:wrap}
+.pprice,.pstat{display:none}
 @media print{
   body *{visibility:hidden}
-  #printableArea,#printableArea *{visibility:visible;color:#000!important;border-color:#cbd5e1!important;background:#fff!important}
-  #printableArea{position:absolute;left:0;top:0;width:100%;padding:20px}
+  #printableArea,#printableArea *,#invPrint,#invPrint *{visibility:visible;color:#000!important;border-color:#cbd5e1!important;background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printableArea,#invPrint{position:absolute;left:0;top:0;width:100%;padding:20px}
+  #invPrint .badge{border:1px solid #000!important}
+  .pprice{display:block!important;text-align:center;margin-bottom:8px}
+  .pprice b{display:block;font-size:2.4rem;line-height:1.2}
+  .pstat{display:block!important;margin-bottom:8px}
 }
 </style>
 </head>
@@ -185,20 +193,28 @@ html[data-s=app] .nav{display:flex}
   <button class="btn" onclick="calculatePerfume(true)">احسب الكميات والتكلفة وسعر البيع</button><button class="btn2" onclick="showStep(1)">→ رجوع</button></div>
 <div class="step" data-step="3"><div class="bigprice"><span class="muted">سعر البيع المقترح</span><b id="bigPrice">0</b><span class="muted" id="bigSub"></span></div><div id="stockAlert" class="hide"></div><div id="results" class="hide">
     <div id="printableArea">
-      <div class="rhead"><h3>تقرير تركيبة العطر</h3><span id="resultDate" class="muted"></span></div>
+      <div class="pprice"><span>سعر البيع</span><b id="pBig">0</b><span id="pSub"></span></div>
+      <div class="rhead"><h3 id="rTitle">تقرير تركيبة العطر</h3><span id="resultDate" class="muted"></span></div>
+      <div class="pstat" id="pStat"></div>
       <table>
         <thead><tr><th>المكون</th><th>الكمية</th><th>التكلفة</th></tr></thead>
         <tbody id="resBody"></tbody>
         <tfoot>
           <tr><td colspan="2">التكلفة الإجمالية:</td><td id="resTotalCost">0</td></tr>
           <tr class="green"><td colspan="2" id="sellLbl">سعر البيع المقترح:</td><td id="resSellingPrice">0</td></tr>
+          <tr><td colspan="2">صافي الربح:</td><td id="resProfit" style="color:var(--acc)">0</td></tr>
         </tfoot>
       </table>
     </div>
+    <div class="chips" id="payChips" style="margin:14px 0 8px">
+      <button class="chip on" data-pay="paid" onclick="setPay('paid')">✅ مدفوع</button>
+      <button class="chip" data-pay="credit" onclick="setPay('credit')">⏳ آجل</button>
+    </div>
+    <input id="custName" class="inp hide" placeholder="اسم الزبون (اختياري)" style="margin-bottom:4px">
     <div class="acts">
       <button id="saleBtn" class="act main" onclick="logSale()">📒 تسجيل الفاتورة في الشيت</button>
       <div class="acts2">
-        <button class="act" onclick="window.print()"><b>🖨️</b><span>طباعة / PDF</span></button>
+        <button class="act" onclick="printReport()"><b>🖨️</b><span>طباعة / PDF</span></button>
         <button class="act ok" onclick="confirmProduction()"><b>✅</b><span>تأكيد التصنيع وخصم المخزون</span></button>
       </div>
     </div>
@@ -257,6 +273,11 @@ html[data-s=app] .nav{display:flex}
   <div id="invListBox">
     <div class="rhead" style="border:0;margin-bottom:6px"><h2 style="margin:0">الفواتير</h2>
       <div style="display:flex;gap:6px"><button class="chip" onclick="loadInvoices()">🔄 تحديث</button><button class="chip" style="color:var(--bad);border-color:var(--bad)" onclick="deleteAllInvoices()">🗑️ حذف الكل</button></div></div>
+    <div class="chips" id="invFilter" style="margin-bottom:10px">
+      <button class="chip on" data-f="all" onclick="setInvFilter('all')">الكل</button>
+      <button class="chip" data-f="credit" onclick="setInvFilter('credit')">⏳ آجل</button>
+      <button class="chip" data-f="paid" onclick="setInvFilter('paid')">✅ مدفوع</button>
+    </div>
     <div id="invList"></div>
   </div>
   <div id="invDetail" class="hide"></div>
@@ -384,6 +405,10 @@ function calculatePerfume(go) {
   $('resultDate').textContent = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
   $('resTotalCost').textContent = totalCost.toFixed(2);
   $('resSellingPrice').textContent = selling.toFixed(2);
+  $('resProfit').textContent = (selling - totalCost).toFixed(2);
+  $('pBig').textContent = String(+selling.toFixed(2));
+  $('pSub').textContent = 'التكلفة ' + +totalCost.toFixed(2) + ' • الربح ' + +(selling - totalCost).toFixed(2);
+  $('rTitle').textContent = ($('formulaName').value.trim() || 'تركيبة خاصة') + ' — ' + totalVol + ' مل';
   const sb = $('saleBtn'); sb.disabled = false; sb.textContent = '📒 تسجيل الفاتورة في الشيت';
   $('bigPrice').textContent = selling.toFixed(2);
   $('bigSub').textContent = 'التكلفة ' + totalCost.toFixed(2) + ' • الربح ' + (selling - totalCost).toFixed(2);
@@ -427,7 +452,9 @@ async function logSale() {
     cost, price,
     profit: +(price - cost).toFixed(2),
     notes: 'تم البيع بنجاح',
-    details: JSON.stringify({ rows: window.lastCalc.rows || [] })
+    details: JSON.stringify({ rows: window.lastCalc.rows || [] }),
+    status: window.payStatus === 'credit' ? 'آجل' : 'مدفوع',
+    customer: $('custName').value.trim()
   };
   try {
     await fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(sale) });
@@ -495,25 +522,59 @@ function fmtDate(d) {
   return isNaN(t) ? String(d) : t.toLocaleDateString('en-CA');
 }
 window.invList = [];
+window.invFilter = 'all';
+window.payStatus = 'paid';
+function setPay(p) {
+  window.payStatus = p;
+  document.querySelectorAll('#payChips .chip').forEach(b => b.classList.toggle('on', b.dataset.pay === p));
+  $('custName').classList.toggle('hide', p !== 'credit');
+}
+function setInvFilter(f) {
+  window.invFilter = f;
+  document.querySelectorAll('#invFilter .chip').forEach(b => b.classList.toggle('on', b.dataset.f === f));
+  renderInvoices();
+}
+async function markPaid(id) {
+  const f = window.invList.find(x => x.invoiceId === id);
+  if (!f) return;
+  f.status = 'مدفوع'; showInv(id); showToast('تم تحويل الفاتورة إلى مدفوعة');
+  try { await post({ action: 'setStatus', invoiceId: id, status: 'مدفوع' }); } catch (e) { showToast('تعذر الاتصال بالشيت', false); }
+}
 const post = body => fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) });
 
 function renderInvoices() {
   const box = $('invList');
-  if (!window.invList.length) return note(box, 'لا توجد فواتير في الشيت');
-  box.innerHTML = window.invList.map(f => {
+  const list = window.invList.filter(f => window.invFilter === 'all' || (window.invFilter === 'credit') === (f.status === 'آجل'));
+  if (!list.length) return note(box, window.invList.length ? 'لا توجد فواتير بهذا التصنيف' : 'لا توجد فواتير في الشيت');
+  box.innerHTML = list.map(f => {
     const id = esc(f.invoiceId);
     return `<div class="inv2" onclick="showInv('${id}')">
       <button class="del" onclick="event.stopPropagation();deleteInvoice('${id}')">🗑️</button>
-      <div class="top"><b>${esc(f.name)}</b><span class="badge">${esc(nm(f.volume))} مل</span></div>
-      <div class="meta"><span dir="ltr">${id}</span> • ${esc(fmtDate(f.date))}</div>
+      <div class="top"><b>${esc(f.name)}</b><span class="badge">${esc(nm(f.volume))} مل</span><span class="badge ${f.status === 'آجل' ? 'bad' : 'ok'}">${f.status === 'آجل' ? '⏳ آجل' : '✅ مدفوع'}</span></div>
+      <div class="meta"><span dir="ltr">${id}</span> • ${esc(fmtDate(f.date))}${f.customer ? ' • ' + esc(f.customer) : ''}</div>
       <div class="nums"><span>البيع <b style="color:var(--ok)">${esc(nm(f.price))}</b></span><span>الربح <b style="color:var(--acc)">${esc(nm(f.profit))}</b></span></div>
     </div>`;
   }).join('');
+}
+function printReport() {
+  const credit = window.payStatus === 'credit', c = $('custName').value.trim();
+  $('pStat').textContent = (credit ? '⏳ آجل' : '✅ مدفوع') + (credit && c ? ' — ' + c : '');
+  const t = document.title;
+  document.title = 'فاتورة';
+  window.print();
+  setTimeout(() => { document.title = t; }, 1500);
+}
+function printInv(id) {
+  const t = document.title;
+  document.title = 'فاتورة ' + id.replace('#', '');
+  window.print();
+  setTimeout(() => { document.title = t; }, 1500);
 }
 function closeInv() { $('invDetail').classList.add('hide'); $('invListBox').classList.remove('hide'); }
 function showInv(id) {
   const f = window.invList.find(x => x.invoiceId === id);
   if (!f) return;
+  const credit = f.status === 'آجل';
   let rows = [];
   try { rows = JSON.parse(f.details).rows || []; } catch (e) {}
   const body = rows.length
@@ -521,15 +582,18 @@ function showInv(id) {
     : '<tr><td colspan="3" class="muted" style="text-align:center">تفاصيل المكونات غير متوفرة لهذه الفاتورة</td></tr>';
   const d = $('invDetail');
   d.innerHTML = `<button class="btn2" style="margin:0 0 12px" onclick="closeInv()">→ رجوع</button>
-    <div class="bigprice"><span class="muted">سعر البيع</span><b>${esc(nm(f.price))}</b><span class="muted">التكلفة ${esc(nm(f.cost))} • الربح ${esc(nm(f.profit))}</span></div>
+    <div id="invPrint"><div class="bigprice"><span class="muted">سعر البيع</span><b>${esc(nm(f.price))}</b><span class="muted">التكلفة ${esc(nm(f.cost))} • الربح ${esc(nm(f.profit))}</span></div>
     <div class="dcard">
       <div class="rhead"><h3>${esc(f.name)} — ${esc(nm(f.volume))} مل</h3><span class="muted">${esc(fmtDate(f.date))}</span></div>
       <div class="muted" dir="ltr" style="text-align:right;margin-bottom:4px">${esc(f.invoiceId)}</div>
+      <div style="margin-bottom:8px"><span class="badge ${credit ? 'bad' : 'ok'}">${credit ? '⏳ آجل' : '✅ مدفوع'}</span>${f.customer ? ' <span class="muted">' + esc(f.customer) + '</span>' : ''}</div>
       <table><thead><tr><th>المكون</th><th>الكمية</th><th>التكلفة</th></tr></thead><tbody>${body}</tbody>
       <tfoot><tr><td colspan="2">التكلفة الإجمالية:</td><td>${esc(nm(f.cost))}</td></tr>
       <tr class="green"><td colspan="2">سعر البيع:</td><td>${esc(nm(f.price))}</td></tr>
       <tr><td colspan="2">صافي الربح:</td><td style="color:var(--acc)">${esc(nm(f.profit))}</td></tr></tfoot></table>
-    </div>
+    </div></div>
+    <button class="btn2" style="margin:0 0 8px" onclick="printInv('${esc(f.invoiceId)}')">🖨️ طباعة / حفظ PDF</button>
+    ${credit ? `<button class="btn" style="margin-bottom:8px" onclick="markPaid('${esc(f.invoiceId)}')">✅ تم الدفع</button>` : ''}
     <button class="btn2" style="color:var(--bad)" onclick="deleteInvoice('${esc(f.invoiceId)}')">🗑️ حذف الفاتورة</button>`;
   $('invListBox').classList.add('hide'); d.classList.remove('hide');
   window.scrollTo(0, 0);
