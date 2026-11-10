@@ -239,6 +239,7 @@ html[data-lock="1"] #lock{display:flex}
         <button class="mrow" onclick="setTab('stock')"><span class="mi">📦</span><span class="mt">المخزون</span><span class="mc">‹</span></button>
         <button class="mrow" onclick="openFormulas()"><span class="mi">📚</span><span class="mt">تركيباتي المحفوظة</span><span class="mc">‹</span></button>
         <button class="mrow" onclick="setTab('acc')"><span class="mi">👤</span><span class="mt">معلومات الحساب</span><span class="mc">‹</span></button>
+        <button class="mrow" onclick="setTab('buy')"><span class="mi">🛒</span><span class="mt">تسجيل شراء</span><span class="mc">‹</span></button>
         <button class="mrow" onclick="exportInvoices()"><span class="mi">💾</span><span class="mt">نسخة احتياطية للفواتير (Excel)</span><span class="mc">‹</span></button>
         <button class="mrow" onclick="setTab('pin')"><span class="mi">🔒</span><span class="mt">الرقم السري للتطبيق</span><span class="mc">‹</span></button>
         <button class="mrow out" onclick="logoutUser()"><span class="mi">🚪</span><span class="mt">تسجيل الخروج</span></button>
@@ -258,8 +259,25 @@ html[data-lock="1"] #lock{display:flex}
       </div>
       <div class="sp hide" id="sp-stock"><h4>المخزون المتاح حالياً</h4>
       <div class="field"><label class="lbl">الزيت العطري (مل)</label><input type="number" inputmode="decimal" id="oilStock" step="1" min="0" class="inp" placeholder="1000"></div>
-      <div class="field"><label class="lbl">الكحول (مل)</label><input type="number" inputmode="decimal" id="alcStock" step="1" min="0" class="inp" placeholder="5000"></div></div>
+      <div class="field"><label class="lbl">الكحول (مل)</label><input type="number" inputmode="decimal" id="alcStock" step="1" min="0" class="inp" placeholder="5000"></div>
+        <h4>مخزون العبوات (قطعة)</h4>
+        <div class="field"><label class="lbl">عبوة 30 مل</label><input type="number" inputmode="numeric" id="bottleStock30" step="1" min="0" class="inp" placeholder="0"></div>
+        <div class="field"><label class="lbl">عبوة 50 مل</label><input type="number" inputmode="numeric" id="bottleStock50" step="1" min="0" class="inp" placeholder="0"></div>
+        <div class="field"><label class="lbl">عبوة 100 مل</label><input type="number" inputmode="numeric" id="bottleStock100" step="1" min="0" class="inp" placeholder="0"></div></div>
       
+      <div class="sp hide" id="sp-buy">
+        <div class="field"><label class="lbl">المادة</label>
+          <select id="buyItem" class="inp" onchange="updateBuyPreview()">
+            <option value="oil">الزيت العطري</option><option value="alc">الكحول</option>
+            <option value="b30">عبوة 30 مل</option><option value="b50">عبوة 50 مل</option><option value="b100">عبوة 100 مل</option>
+          </select></div>
+        <div class="field"><label class="lbl" id="buyQtyLbl">الكمية (مل)</label><input type="number" inputmode="decimal" id="buyQty" min="0" class="inp" oninput="updateBuyPreview()"></div>
+        <div class="field"><label class="lbl">المبلغ الإجمالي الذي دفعته</label><input type="number" inputmode="decimal" id="buyTotal" min="0" class="inp" oninput="updateBuyPreview()"></div>
+        <p class="muted" id="buyPreview" style="margin-bottom:10px;min-height:1.2em"></p>
+        <button class="btn" onclick="savePurchase()">تسجيل الشراء</button>
+        <h4 style="margin-top:16px">آخر المشتريات</h4>
+        <div id="buyList"></div>
+      </div>
       <div class="sp hide" id="sp-pin">
         <p class="muted" style="margin-bottom:10px">يطلب الموقع هذا الرقم عند فتحه على هذا الجوال. حماية بسيطة للجهاز فقط.</p>
         <input type="password" inputmode="numeric" maxlength="6" id="pinNew" class="inp ltr" placeholder="رقم سري (4 إلى 6 أرقام)">
@@ -329,6 +347,8 @@ function applyData(d) {
   [30, 50, 100].forEach(s => { $('bottlePrice' + s).value = d['bottlePrice' + s] ?? d.bottlePrice ?? 0; });
   if (d.name) { $('userName').textContent = 'مرحباً، ' + d.name; $('accName').textContent = d.name; }
   if (d.formulas) { window.formulas = d.formulas; renderFormulaSelect($('formulaSelect').value); }
+  BOTTLE_STOCK.forEach(k => { $(k).value = d[k] || 0; });
+  if (d.purchases) window.purchases = d.purchases;
 }
 
 function switchTab(tab) {
@@ -394,6 +414,8 @@ function calculatePerfume(go) {
     if (oilAmount > oilStock) alerts.push(`تنبيه: كمية الزيت المطلوبة (${oilAmount.toFixed(2)} مل) أكبر من المخزون المتاح (${oilStock} مل)!`);
     if (alcAmount > alcStock) alerts.push(`تنبيه: كمية الكحول المطلوبة (${alcAmount.toFixed(2)} مل) أكبر من المخزون المتاح (${alcStock} مل)!`);
   }
+  const bs = [30, 50, 100].includes(window.selectedSize) ? window.selectedSize : null;
+  if (bs && BOTTLE_STOCK.some(k => g(k) > 0) && g('bottleStock' + bs) < 1) alerts.push(`تنبيه: مخزون عبوات ${bs} مل غير كافٍ!`);
   box.className = alerts.length ? 'alert ' + kind : 'hide';
   box.innerHTML = alerts.join('<br>');
 
@@ -405,7 +427,7 @@ function calculatePerfume(go) {
   const step = parseFloat($('roundStep').value) || 0;
   const selling = step ? Math.ceil(raw / step - 1e-9) * step : raw;
 
-  window.lastCalc = { oilAmount, alcAmount, totalCost, selling, key: [totalVol, concentration, JSON.stringify(extras)].join('|') };
+  window.lastCalc = { oilAmount, alcAmount, totalCost, selling, key: [totalVol, concentration, JSON.stringify(extras)].join('|'), bottleSize: bs };
   const body = $('resBody'); body.innerHTML = ''; const rows = [];
   const addRow = (n, a, c) => {
     rows.push([n, a, c]);
@@ -617,13 +639,40 @@ function setTheme(t) {
   document.querySelectorAll('[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === t));
 }
 
-const TITLES = { menu: 'الإعدادات', theme: 'المظهر', prices: 'أسعار المواد', stock: 'المخزون', inv: 'الفواتير', acc: 'معلومات الحساب', pin: 'الرقم السري' };
+const BOTTLE_STOCK = ['bottleStock30', 'bottleStock50', 'bottleStock100'];
+const BUY = {
+  oil: { name: 'الزيت العطري', stock: 'oilStock', price: 'oilPrice100', unit: 100, u: 'مل' },
+  alc: { name: 'الكحول', stock: 'alcStock', price: 'alcPrice100', unit: 100, u: 'مل' },
+  b30: { name: 'عبوة 30 مل', stock: 'bottleStock30', price: 'bottlePrice30', unit: 1, u: 'قطعة' },
+  b50: { name: 'عبوة 50 مل', stock: 'bottleStock50', price: 'bottlePrice50', unit: 1, u: 'قطعة' },
+  b100: { name: 'عبوة 100 مل', stock: 'bottleStock100', price: 'bottlePrice100', unit: 1, u: 'قطعة' }
+};
+window.purchases = [];
+function updateBuyPreview() {
+  const b = BUY[$('buyItem').value];
+  $('buyQtyLbl').textContent = 'الكمية (' + b.u + ')';
+  const q = parseFloat($('buyQty').value) || 0, t = parseFloat($('buyTotal').value) || 0, el = $('buyPreview');
+  if (q > 0 && t > 0) {
+    const np = +(t / q * b.unit).toFixed(2), ns = +((parseFloat($(b.stock).value) || 0) + q).toFixed(2);
+    el.textContent = 'السعر الجديد: ' + np + (b.unit === 100 ? ' لكل 100 مل' : ' للقطعة') + ' • المخزون بعد الشراء: ' + ns;
+  } else el.textContent = '';
+}
+function renderPurchases() {
+  const box = $('buyList');
+  if (!window.purchases.length) return note(box, 'لا توجد مشتريات مسجلة');
+  box.innerHTML = window.purchases.slice(0, 15).map(x => {
+    const b = BUY[x.item] || { name: x.item, u: '', unit: 1 };
+    return `<div class="inv"><div><b>${b.name}</b><small>${x.d} • ${x.qty} ${b.u} • دُفع ${x.total}</small></div></div>`;
+  }).join('');
+}
+const TITLES = { menu: 'الإعدادات', theme: 'المظهر', prices: 'أسعار المواد', stock: 'المخزون', inv: 'الفواتير', acc: 'معلومات الحساب', pin: 'الرقم السري', buy: 'تسجيل شراء' };
 function setTab(n) {
   document.querySelectorAll('#pSet .sp').forEach(d => d.classList.toggle('hide', d.id !== 'sp-' + n));
   $('mTitle').textContent = TITLES[n];
   $('mBack').classList.toggle('hide', n === 'menu');
   $('saveSettingsBtn').classList.toggle('hide', !['prices', 'stock'].includes(n));
   if (n === 'inv') loadInvoices();
+  if (n === 'buy') { updateBuyPreview(); renderPurchases(); }
 }
 function note(box, text, bad) {
   box.innerHTML = ''; const p = document.createElement('p');
@@ -890,7 +939,7 @@ window.saveSettings = async function () {
   const btn = $('saveSettingsBtn'), txt = btn.textContent;
   btn.disabled = true; btn.textContent = 'جاري الحفظ... ⏳';
   const data = {};
-  [...PRICE_KEYS, 'bottlePrice30', 'bottlePrice50', 'bottlePrice100'].forEach(k => data[k] = num(k));
+  [...PRICE_KEYS, ...BOTTLE_STOCK, 'bottlePrice30', 'bottlePrice50', 'bottlePrice100'].forEach(k => data[k] = num(k));
   try {
     await setDoc(doc(db, 'userPrices', uid), data, { merge: true });
     setCache(data);
@@ -921,17 +970,36 @@ window.deleteFormula = async function () {
   await pushFormulas(window.formulas.filter(x => x.name !== n), '', 'تم حذف التركيبة');
 };
 
-window.confirmProduction = async function () {
-  if (!uid || !window.lastCalc) return false;
-  if (window.deductedKey === window.lastCalc.key) { showToast('خُصمت كميات هذه التركيبة مسبقاً', false); return false; }
-  const { oilAmount, alcAmount } = window.lastCalc;
-  const oil = num('oilStock'), alc = num('alcStock');
-  if (oilAmount > oil || alcAmount > alc) return showToast('المخزون لا يكفي لهذه التركيبة', false);
-  const data = { oilStock: +(oil - oilAmount).toFixed(2), alcStock: +(alc - alcAmount).toFixed(2) };
+window.savePurchase = async function () {
+  if (!uid) return;
+  const item = $('buyItem').value, b = BUY[item], qty = num('buyQty'), total = num('buyTotal');
+  if (qty <= 0 || total <= 0) return showToast('اكتب الكمية والمبلغ', false);
+  const newPrice = +(total / qty * b.unit).toFixed(2), newStock = +(num(b.stock) + qty).toFixed(2);
+  const list = [{ d: new Date().toISOString().slice(0, 10), item, qty, total }, ...window.purchases].slice(0, 100);
+  const data = { [b.stock]: newStock, [b.price]: newPrice, purchases: list };
   try {
     await setDoc(doc(db, 'userPrices', uid), data, { merge: true });
     setCache(data);
-    $('oilStock').value = data.oilStock; $('alcStock').value = data.alcStock;
+    $(b.stock).value = newStock; $(b.price).value = newPrice;
+    window.purchases = list; renderPurchases();
+    $('buyQty').value = ''; $('buyTotal').value = ''; updateBuyPreview();
+    showToast('تم تسجيل الشراء وتحديث المخزون والسعر');
+  } catch (e) { showToast('تعذر تسجيل الشراء: ' + e.message, false); }
+};
+
+window.confirmProduction = async function () {
+  if (!uid || !window.lastCalc) return false;
+  if (window.deductedKey === window.lastCalc.key) { showToast('خُصمت كميات هذه التركيبة مسبقاً', false); return false; }
+  const { oilAmount, alcAmount, bottleSize } = window.lastCalc;
+  const oil = num('oilStock'), alc = num('alcStock');
+  const useBottle = bottleSize && BOTTLE_STOCK.some(k => num(k) > 0);
+  if (oilAmount > oil || alcAmount > alc || (useBottle && num('bottleStock' + bottleSize) < 1)) return showToast('المخزون لا يكفي لهذه التركيبة', false);
+  const data = { oilStock: +(oil - oilAmount).toFixed(2), alcStock: +(alc - alcAmount).toFixed(2) };
+  if (useBottle) data['bottleStock' + bottleSize] = num('bottleStock' + bottleSize) - 1;
+  try {
+    await setDoc(doc(db, 'userPrices', uid), data, { merge: true });
+    setCache(data);
+    Object.keys(data).forEach(k => { if ($(k)) $(k).value = data[k]; });
     showToast('تم خصم الكميات من المخزون');
     window.deductedKey = window.lastCalc.key;
     calculatePerfume();
