@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>حاسبة وتكلفة العطور الاحترافية - عصام</title>
-<script>(function(r){try{r.dataset.s=localStorage.getItem('pc_in')==='1'?'app':'boot';r.dataset.theme=localStorage.getItem('pc_theme')||'gold'}catch(e){r.dataset.s='boot';r.dataset.theme='gold'}})(document.documentElement)</script>
+<script>(function(r){try{r.dataset.s=localStorage.getItem('pc_in')==='1'?'app':'boot';r.dataset.theme=localStorage.getItem('pc_theme')||'gold';if(localStorage.getItem('pc_pin'))r.dataset.lock='1'}catch(e){r.dataset.s='boot';r.dataset.theme='gold'}})(document.documentElement)</script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="var(--bg)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -117,6 +117,9 @@ html[data-s=app] .nav{display:flex}
 .badge.ok{color:var(--ok);border-color:var(--ok)}
 .inv2 .top{flex-wrap:wrap}
 .pprice,.pstat{display:none}
+#lock{display:none;position:fixed;inset:0;z-index:100;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;text-align:center}
+html[data-lock="1"] #lock{display:flex}
+#lock .inp,#lock .btn{max-width:240px}
 @media print{
   body *{visibility:hidden}
   #printableArea,#printableArea *,#invPrint,#invPrint *{visibility:visible;color:#000!important;border-color:#cbd5e1!important;background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -236,6 +239,8 @@ html[data-s=app] .nav{display:flex}
         <button class="mrow" onclick="setTab('stock')"><span class="mi">📦</span><span class="mt">المخزون</span><span class="mc">‹</span></button>
         <button class="mrow" onclick="openFormulas()"><span class="mi">📚</span><span class="mt">تركيباتي المحفوظة</span><span class="mc">‹</span></button>
         <button class="mrow" onclick="setTab('acc')"><span class="mi">👤</span><span class="mt">معلومات الحساب</span><span class="mc">‹</span></button>
+        <button class="mrow" onclick="exportInvoices()"><span class="mi">💾</span><span class="mt">نسخة احتياطية للفواتير (Excel)</span><span class="mc">‹</span></button>
+        <button class="mrow" onclick="setTab('pin')"><span class="mi">🔒</span><span class="mt">الرقم السري للتطبيق</span><span class="mc">‹</span></button>
         <button class="mrow out" onclick="logoutUser()"><span class="mi">🚪</span><span class="mt">تسجيل الخروج</span></button>
       </div>
       <div class="sp hide" id="sp-theme"><h4>المظهر</h4>
@@ -255,6 +260,12 @@ html[data-s=app] .nav{display:flex}
       <div class="field"><label class="lbl">الزيت العطري (مل)</label><input type="number" inputmode="decimal" id="oilStock" step="1" min="0" class="inp" placeholder="1000"></div>
       <div class="field"><label class="lbl">الكحول (مل)</label><input type="number" inputmode="decimal" id="alcStock" step="1" min="0" class="inp" placeholder="5000"></div></div>
       
+      <div class="sp hide" id="sp-pin">
+        <p class="muted" style="margin-bottom:10px">يطلب الموقع هذا الرقم عند فتحه على هذا الجوال. حماية بسيطة للجهاز فقط.</p>
+        <input type="password" inputmode="numeric" maxlength="6" id="pinNew" class="inp ltr" placeholder="رقم سري (4 إلى 6 أرقام)">
+        <button class="btn" style="margin-top:10px" onclick="savePin()">حفظ الرقم</button>
+        <button class="btn2" onclick="removePin()">🔓 إزالة الرقم السري</button>
+      </div>
       <div class="sp hide" id="sp-acc">
         <div class="inv"><div><small>الاسم</small><b id="accName">-</b></div></div>
         <div class="inv"><div><small>البريد الإلكتروني</small><b id="accEmail" dir="ltr">-</b></div></div>
@@ -273,6 +284,7 @@ html[data-s=app] .nav{display:flex}
   <div id="invListBox">
     <div class="rhead" style="border:0;margin-bottom:6px"><h2 style="margin:0">الفواتير</h2>
       <div style="display:flex;gap:6px"><button class="chip" onclick="loadInvoices()">🔄 تحديث</button><button class="chip" style="color:var(--bad);border-color:var(--bad)" onclick="deleteAllInvoices()">🗑️ حذف الكل</button></div></div>
+    <div id="qNote" class="alert info hide" style="margin:0 0 10px"><span id="qTxt"></span> <button class="link" onclick="flushQueue()">إرسال الآن</button></div>
     <div class="chips" id="invFilter" style="margin-bottom:10px">
       <button class="chip on" data-f="all" onclick="setInvFilter('all')">الكل</button>
       <button class="chip" data-f="credit" onclick="setInvFilter('credit')">⏳ آجل</button>
@@ -291,6 +303,11 @@ html[data-s=app] .nav{display:flex}
   <p id="cfmText" class="muted" style="margin-bottom:18px;font-size:.85rem"></p>
   <div style="display:flex;gap:10px"><button id="cfmNo" class="btn2" style="margin:0;flex:1">إلغاء</button><button id="cfmYes" class="btn" style="flex:1;background:var(--bad);color:#fff"></button></div>
 </div></div>
+
+<div id="lock"><div style="font-size:2.6rem">🔒</div><h2>التطبيق مقفل</h2>
+  <input id="lockPin" type="password" inputmode="numeric" maxlength="6" class="inp ltr" style="text-align:center" placeholder="الرقم السري" onkeydown="if(event.key==='Enter')unlock()">
+  <button class="btn" onclick="unlock()">فتح</button><p id="lockErr" class="err"></p>
+  <button class="link" onclick="forgotPin()">نسيت الرقم؟ (تسجيل الخروج)</button></div>
 
 <nav class="nav"><button id="nvCalc" class="on" onclick="showPanel('calc')">🧮<span>الحاسبة</span></button><button id="nvInv" onclick="showPanel('inv')">🧾<span>الفواتير</span></button><button id="nvSet" onclick="showPanel('set')">⚙️<span>الإعدادات</span></button></nav>
 
@@ -388,7 +405,7 @@ function calculatePerfume(go) {
   const step = parseFloat($('roundStep').value) || 0;
   const selling = step ? Math.ceil(raw / step - 1e-9) * step : raw;
 
-  window.lastCalc = { oilAmount, alcAmount, totalCost, selling };
+  window.lastCalc = { oilAmount, alcAmount, totalCost, selling, key: [totalVol, concentration, JSON.stringify(extras)].join('|') };
   const body = $('resBody'); body.innerHTML = ''; const rows = [];
   const addRow = (n, a, c) => {
     rows.push([n, a, c]);
@@ -442,7 +459,11 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbyI4lLTtaLX0RkrUMdE40
 async function logSale() {
   if (!window.lastCalc) return;
   const btn = $('saleBtn');
-  btn.disabled = true; btn.textContent = 'جاري التسجيل... ⏳';
+  btn.disabled = true;
+  if (window.deductedKey !== window.lastCalc.key && window.confirmProduction &&
+      await askConfirm('خصم من المخزون', 'هل تخصم كميات هذه التركيبة من المخزون؟', 'نعم، اخصم')) {
+    await window.confirmProduction();
+  }
   const cost = +window.lastCalc.totalCost.toFixed(2), price = +window.lastCalc.selling.toFixed(2);
   const sale = {
     date: new Date().toISOString().split('T')[0],
@@ -456,15 +477,119 @@ async function logSale() {
     status: window.payStatus === 'credit' ? 'آجل' : 'مدفوع',
     customer: $('custName').value.trim()
   };
-  try {
-    await fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(sale) });
+  setQ([...getQ(), sale]);
+  window.deductedKey = null;
+  btn.textContent = 'جاري التسجيل... ⏳';
+  await flushQueue();
+  if (getQ().some(x => x.invoiceId === sale.invoiceId)) {
+    btn.textContent = '⏳ محفوظة وستُرسل عند توفر الاتصال';
+    showToast('الفاتورة محفوظة وستُرسل تلقائياً عند توفر الإنترنت');
+  } else {
     btn.textContent = '✓ تم تسجيل الفاتورة';
-    showToast('أُرسلت الفاتورة إلى الشيت');
-  } catch (e) {
-    btn.disabled = false; btn.textContent = '📒 تسجيل الفاتورة في الشيت';
-    showToast('تعذر الاتصال بالشيت، تأكد من الإنترنت وحاول مرة أخرى', false);
+    showToast('تم تسجيل الفاتورة في الشيت');
   }
 }
+
+// طابور الإرسال: حفظ محلي، تأكيد الوصول، إعادة المحاولة
+const QKEY = 'pc_queue';
+function getQ() { try { return JSON.parse(localStorage.getItem(QKEY)) || []; } catch (e) { return []; } }
+function setQ(q) { try { localStorage.setItem(QKEY, JSON.stringify(q)); } catch (e) {} updateQueueNote(); }
+function updateQueueNote() {
+  const n = getQ().length, el = $('qNote');
+  if (!el) return;
+  el.classList.toggle('hide', !n);
+  $('qTxt').textContent = '⏳ ' + n + ' فاتورة بانتظار الإرسال إلى الشيت.';
+}
+async function existsInSheet(id) {
+  try { const l = await (await fetch(SHEET_URL)).json(); return Array.isArray(l) && l.some(f => f.invoiceId === id); }
+  catch (e) { return null; }
+}
+let flushing = false;
+async function flushQueue() {
+  if (flushing) return;
+  flushing = true;
+  try {
+    for (const sale of getQ()) {
+      let ok = false;
+      for (let i = 0; i < 3 && !ok; i++) {
+        try { await post(sale); } catch (e) { break; }
+        await new Promise(r => setTimeout(r, 1500));
+        ok = (await existsInSheet(sale.invoiceId)) === true;
+      }
+      if (!ok) break;
+      setQ(getQ().filter(x => x.invoiceId !== sale.invoiceId));
+    }
+  } finally { flushing = false; updateQueueNote(); }
+}
+window.addEventListener('online', flushQueue);
+setInterval(() => { if (getQ().length) flushQueue(); }, 30000);
+
+// نسخة احتياطية
+async function exportInvoices() {
+  showToast('جاري تجهيز النسخة الاحتياطية...');
+  try {
+    const list = await (await fetch(SHEET_URL)).json();
+    if (!Array.isArray(list) || !list.length) return showToast('لا توجد فواتير للتصدير', false);
+    const head = ['التاريخ', 'رقم الفاتورة', 'الاسم', 'الحجم', 'التكلفة', 'سعر البيع', 'الربح', 'الحالة', 'الزبون'];
+    const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+    const rows = list.map(f => [fmtDate(f.date), f.invoiceId, f.name, f.volume, f.cost, f.price, f.profit, f.status || 'مدفوع', f.customer || '']);
+    const csv = '\ufeff' + [head, ...rows].map(r => r.map(q).join(',')).join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'invoices-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    showToast('تم تنزيل النسخة الاحتياطية');
+  } catch (e) { showToast('تعذر جلب الفواتير', false); }
+}
+
+// حفظ المسودة تلقائياً
+let draftT;
+function saveDraft() { try { localStorage.setItem('pc_draft', JSON.stringify(getFormulaState())); } catch (e) {} }
+document.addEventListener('input', e => {
+  if (e.target.closest && e.target.closest('#pCalc,#pForm')) { clearTimeout(draftT); draftT = setTimeout(saveDraft, 400); }
+});
+function restoreDraft() {
+  try {
+    const f = JSON.parse(localStorage.getItem('pc_draft') || 'null');
+    if (!f) return;
+    $('formulaName').value = f.name || ''; $('totalVol').value = f.totalVol; $('concentration').value = f.concentration;
+    $('profitMargin').value = f.profitMargin; $('roundStep').value = f.round || '0';
+    $('extras').innerHTML = ''; (f.extras || []).forEach(addExtra);
+    syncChips();
+  } catch (e) {}
+}
+
+// الرقم السري
+async function sha(t) {
+  try {
+    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('pc:' + t));
+    return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+  } catch (e) { return 'x' + btoa(unescape(encodeURIComponent('pc:' + t))); }
+}
+async function savePin() {
+  const v = $('pinNew').value.trim();
+  if (!/^\d{4,6}$/.test(v)) return showToast('الرقم السري من 4 إلى 6 أرقام', false);
+  try { localStorage.setItem('pc_pin', await sha(v)); } catch (e) {}
+  $('pinNew').value = ''; showToast('تم حفظ الرقم السري'); setTab('menu');
+}
+function removePin() { try { localStorage.removeItem('pc_pin'); } catch (e) {} showToast('تمت إزالة الرقم السري'); setTab('menu'); }
+async function unlock() {
+  let h = null; try { h = localStorage.getItem('pc_pin'); } catch (e) {}
+  if (!h || (await sha($('lockPin').value.trim())) === h) {
+    delete document.documentElement.dataset.lock; $('lockPin').value = ''; $('lockErr').textContent = '';
+  } else { $('lockErr').textContent = 'الرقم غير صحيح'; }
+}
+function forgotPin() {
+  try { localStorage.removeItem('pc_pin'); } catch (e) {}
+  delete document.documentElement.dataset.lock;
+  if (window.logoutUser) window.logoutUser();
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { window._hid = Date.now(); return; }
+  let h = null; try { h = localStorage.getItem('pc_pin'); } catch (e) {}
+  if (h && window._hid && Date.now() - window._hid > 300000) document.documentElement.dataset.lock = '1';
+});
 
 function showPanel(n) {
   const ids = { calc: 'pCalc', form: 'pForm', inv: 'pInv', set: 'pSet' };
@@ -492,7 +617,7 @@ function setTheme(t) {
   document.querySelectorAll('[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === t));
 }
 
-const TITLES = { menu: 'الإعدادات', theme: 'المظهر', prices: 'أسعار المواد', stock: 'المخزون', inv: 'الفواتير', acc: 'معلومات الحساب' };
+const TITLES = { menu: 'الإعدادات', theme: 'المظهر', prices: 'أسعار المواد', stock: 'المخزون', inv: 'الفواتير', acc: 'معلومات الحساب', pin: 'الرقم السري' };
 function setTab(n) {
   document.querySelectorAll('#pSet .sp').forEach(d => d.classList.toggle('hide', d.id !== 'sp-' + n));
   $('mTitle').textContent = TITLES[n];
@@ -634,6 +759,9 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) naviga
 renderChips();
 setTheme(document.documentElement.dataset.theme);
 try { $('roundStep').value = localStorage.getItem('pc_round') || '0'; } catch (e) {}
+restoreDraft();
+updateQueueNote();
+flushQueue();
 if (document.documentElement.dataset.s === 'app') applyData(getCache());
 </script>
 
@@ -677,6 +805,8 @@ onAuthStateChanged(auth, user => {
     try { localStorage.removeItem('pc_in'); localStorage.removeItem('pc_data'); } catch (e) {}
     root.dataset.s = 'auth';
     showPanel('calc'); showStep(1);
+    try { localStorage.removeItem('pc_draft'); localStorage.removeItem('pc_pin'); } catch (e) {}
+    delete root.dataset.lock;
     $('results').classList.add('hide');
     $('stockAlert').className = 'hide';
   }
@@ -792,7 +922,8 @@ window.deleteFormula = async function () {
 };
 
 window.confirmProduction = async function () {
-  if (!uid || !window.lastCalc) return;
+  if (!uid || !window.lastCalc) return false;
+  if (window.deductedKey === window.lastCalc.key) { showToast('خُصمت كميات هذه التركيبة مسبقاً', false); return false; }
   const { oilAmount, alcAmount } = window.lastCalc;
   const oil = num('oilStock'), alc = num('alcStock');
   if (oilAmount > oil || alcAmount > alc) return showToast('المخزون لا يكفي لهذه التركيبة', false);
@@ -802,7 +933,9 @@ window.confirmProduction = async function () {
     setCache(data);
     $('oilStock').value = data.oilStock; $('alcStock').value = data.alcStock;
     showToast('تم خصم الكميات من المخزون');
+    window.deductedKey = window.lastCalc.key;
     calculatePerfume();
+    return true;
   } catch (e) { showToast('تعذر تحديث المخزون: ' + e.message, false); }
 };
 </script>
